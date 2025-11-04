@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <!-- Show a splash screen on the activity. Automatically removed when
+             the Flutter engine draws its first frame -->
+    <item name="android:background">@android:color/transparent</item>
+             <item name="keyStyle">@style/LetterStyle</item>
+             
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <!-- Theme applied to the Android Window as soon as the process has started.
+         This theme determines the color of the Android Window while your
+         Flutter UI initializes, as well as behind your Flutter UI while its
+         running.
+
+         This Theme is only used starting with V2 of Flutter's Android embedding. -->
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+    <style name="KeyStyle">
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">55dp</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:textColor">#FFF</item>
+   
+    <item name="android:textSize">18sp</item>
+    <item name="android:padding">2dp</item>
+    <item name="android:radius">50dp</item>
+    <item name="android:textAllCaps">false</item>
+
+</style>
+ <style name="KeyStyle2">
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">73dp</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:textColor">#FFF</item>
+    <item name="android:background">#2d2d2d</item>
+    <item name="android:background">@android:color/transparent</item>
+
+    <item name="android:textSize">18sp</item>
+    <item name="android:layout_margin">2dp</item>
+    <item name="android:radius">50dp</item>
+    <item name="android:textAllCaps">false</item>
+
+</style>
+ <style name="specialKeyStyle">
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">45dp</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:textColor">#FFF</item>
+    <item name="android:background">@android:color/transparent</item>
+ 
+
+    <item name="android:textSize">18sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:padding">2dp</item>
+    <item name="android:radius">50dp</item>
+    <item name="android:textAllCaps">false</item>
+
+</style>
+
+ <style name="clipBtnsStyle">
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">30dp</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:textColor">#FFF</item>
+    <item name="android:background">#121212</item>
+    <item name="android:textSize">20sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:textAllCaps">false</item>
+</style>
+ <style name="clipBtnsMoreStyle">
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">match_parent</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:textColor">#FFF</item>
+    <item name="android:background">#2d2d2d</item>
+    <item name="android:textSize">18sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:textAllCaps">false</item>
+    <item name="android:layout_margin">2dp</item>
+</style>
+<style name="KeyStyle1">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">match_parent</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:textColor">#FFF</item>
+    <item name="android:textStyle">bold</item>
+     <item name="android:background">#2d2d2d</item>
+    <!-- <item name="android:background">@android:color/transparent</item> -->
+
+    <!-- <item name="android:background">#ff0000</item> -->
+
+    <item name="android:textSize">18sp</item>
+    <!-- <item name="android:layout_margin">3dp</item> -->
+    <item name="android:radius">50dp</item>
+    <item name="android:textAllCaps">false</item>
+
+</style>
+<style name="LetterStyle" >
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">match_parent</item>
+    <item name="android:layout_weight">1</item>
+
+    <!-- <item name="android:textColor">#FFF</item> -->
+    <!-- <item name="android:textStyle">bold</item> -->
+    <item name="android:background">@android:color/transparent</item>
+    <!-- <item name="android:textSize">18sp</item> -->
+    <!-- <item name="android:textAllCaps">false</item> -->
+
+</style>
+
+</resources>

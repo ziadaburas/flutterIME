@@ -1,0 +1,5 @@
+<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <!-- <item name="android:background">@android:color/transparent</item> -->
+
+    <!-- <item name="myKeyStyle">@style/LetterStyle</item> -->
+</style>

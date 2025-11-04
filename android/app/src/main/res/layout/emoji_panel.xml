@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout style="@style/KeyStyle"  xmlns:android="http://schemas.android.com/apk/res/android">
+    <Button android:id="@+id/emogBtn" android:text="" style="@style/KeyStyle1"/>
+    <TextView android:id="@+id/emogText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="*" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+</FrameLayout>

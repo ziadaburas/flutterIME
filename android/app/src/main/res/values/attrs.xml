@@ -1,0 +1,16 @@
+<resources>
+    <declare-styleable name="keyAttrs">
+        <attr name="width" format="dimension" />
+        <attr name="height" format="dimension|enum">
+            <enum name="match" value="-1"/>
+            <enum name="wrap" value="-2"/>
+        </attr>
+
+        <attr name="weight" format="float" />
+        <attr name="text" format="string" />
+        <attr name="popupKeys" format="string" />
+    <attr name="keyStyle" format="reference" />
+    </declare-styleable>
+    <attr name="myKeyStyle" format="reference" />
+</resources>
+

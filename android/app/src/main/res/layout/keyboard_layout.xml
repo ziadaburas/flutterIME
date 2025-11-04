@@ -1,0 +1,615 @@
+<FrameLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/keyboard_root"
+    android:layout_width="match_parent"
+    android:layout_height="325dp"
+    android:background="#222">
+ <LinearLayout
+        android:id="@+id/keyboard_main_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:orientation="horizontal">
+            <com.example.ime.views.LeftKey
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:tag="←"
+                android:contentDescription=""
+                />
+            <com.example.ime.views.UpKey
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:tag="↑"
+                android:contentDescription="Home"
+                />
+            <FrameLayout style="@style/specialKeyStyle" android:visibility="gone">
+                <TextView
+                    android:id="@+id/hint_keyLeft"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hint"
+                    android:textSize="10sp"
+                    android:textColor="#AAA"
+                    android:layout_gravity="top|end"
+                    android:padding="2dp"
+                    android:background="@android:color/transparent"/>
+                <Button android:id="@+id/keyLeft" android:text="←" style="@style/KeyStyle1"/>
+            </FrameLayout>
+            <FrameLayout style="@style/specialKeyStyle" android:visibility="gone">
+                <Button android:id="@+id/keyUp" android:text="↑" style="@style/KeyStyle1"/>
+                <TextView
+                    android:id="@+id/hint_keyUp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hint"
+                    android:textSize="10sp"
+                    android:textColor="#AAA"
+                    android:layout_gravity="top|end"
+                    android:padding="2dp"
+                    android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/specialKeyStyle" android:visibility="gone">
+                <Button android:id="@+id/keyTab" android:text="Tab" style="@style/KeyStyle1"/>
+                <TextView
+                    android:id="@+id/hint_keyTab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hint"
+                    android:textSize="10sp"
+                    android:textColor="#AAA"
+                    android:layout_gravity="top|end"
+                    android:padding="2dp"
+                    android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/specialKeyStyle" android:visibility="gone">
+                <Button android:id="@+id/keyCtrl" android:text="Ctrl" style="@style/KeyStyle1"/>
+                <TextView
+                    android:id="@+id/hint_keyCtrl"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hint"
+                    android:textSize="10sp"
+                    android:textColor="#AAA"
+                    android:layout_gravity="top|end"
+                    android:padding="2dp"
+                    android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/specialKeyStyle" android:visibility="gone">
+                <Button android:id="@+id/keyAlt" android:text="Alt" style="@style/KeyStyle1"/>
+                <TextView
+                    android:id="@+id/hint_keyAlt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hint"
+                    android:textSize="10sp"
+                    android:textColor="#AAA"
+                    android:layout_gravity="top|end"
+                    android:padding="2dp"
+                    android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/specialKeyStyle" android:visibility="gone">
+                <Button android:id="@+id/keyShift" android:text="Shift" style="@style/KeyStyle1"/>
+                <TextView
+                    android:id="@+id/hint_keyShift"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hint"
+                    android:textSize="10sp"
+                    android:textColor="#AAA"
+                    android:layout_gravity="top|end"
+                    android:padding="2dp"
+                    android:background="@android:color/transparent"/>
+            </FrameLayout>
+             <com.example.ime.views.Tab
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:tag="Tab"
+                android:contentDescription=""
+                />
+                <com.example.ime.views.Ctrl
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:tag="Ctrl"
+                android:contentDescription=""
+                /><com.example.ime.views.Alt
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:tag="Alt"
+                android:contentDescription=""
+                /><com.example.ime.views.Shift
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:tag="Shift"
+                android:contentDescription=""
+                />
+                <com.example.ime.views.DownKey
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:tag="↓"
+                android:contentDescription="End"
+                />
+            <com.example.ime.views.RightKey
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:tag="→"
+                android:contentDescription=""
+                />
+            <FrameLayout style="@style/specialKeyStyle" android:visibility="gone">
+                <Button android:id="@+id/keyDown" android:text="↓" style="@style/KeyStyle1"/>
+                <TextView
+                    android:id="@+id/hint_keyDown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hint"
+                    android:textSize="10sp"
+                    android:textColor="#AAA"
+                    android:layout_gravity="top|end"
+                    android:padding="2dp"
+                    android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/specialKeyStyle" android:visibility="gone">
+                <Button android:id="@+id/keyRight" android:text="→" style="@style/KeyStyle1"/>
+                <TextView
+                    android:id="@+id/hint_keyRight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hint"
+                    android:textSize="10sp"
+                    android:textColor="#AAA"
+                    android:layout_gravity="top|end"
+                    android:padding="2dp"
+                    android:background="@android:color/transparent"/>
+            </FrameLayout>
+        </LinearLayout>
+        <!-- <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key1" android:text="1" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="!" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key2" android:text="2" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key3" android:text="3" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="#" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key4" android:text="4" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="$" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key5" android:text="5" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="%" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key6" android:text="6" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="^" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key7" android:text="7" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key7" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&amp;" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key8" android:text="8" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key8" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="*" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key9" android:text="9" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key9" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="()" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/key0" android:text="0" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_key0" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⁰₀°٠" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+        </LinearLayout> -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/symbols"
+            >
+        <!-- <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyQ" android:text="q" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyQ" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="$" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyW" android:text="w" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyW" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="#" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyE" android:text="e" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyE" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="%" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyR" android:text="r" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyR" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&amp;" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyT" android:text="t" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyT" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyY" android:text="y" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyY" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyU" android:text="u" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyU" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="=" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyI" android:text="i" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyI" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="|" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyO" android:text="o" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyO" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="]" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyP" android:text="p" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyP" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="?" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <FrameLayout style="@style/KeyStyle" android:visibility="gone" >
+                <Button android:id="@+id/keySh" android:text="a" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keySh" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyA" android:text="a" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyA" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyS" android:text="s" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyS" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="( )" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyD" android:text="d" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyD" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="{ }" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyF" android:text="f" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyF" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="[ ]" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyG" android:text="g" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyG" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="^" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyH" android:text="h" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyH" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="_" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyJ" android:text="j" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyJ" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyK" android:text="k" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyK" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=":" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyL" android:text="l" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyL" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=";" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <FrameLayout style="@style/KeyStyle" android:visibility="gone" >
+                <Button android:id="@+id/keyTha" android:text="a" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyTha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle" android:visibility="gone" >
+                <Button android:id="@+id/keyTa" android:text="a" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyTa" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle" android:layout_weight="1.5">
+                <Button android:id="@+id/keyCaps" android:text="↑" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyCaps" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyZ" android:text="z" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyZ" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="'" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyX" android:text="x" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyX" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&quot;" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyC" android:text="c" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyC" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="`" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyV" android:text="v" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyV" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&lt;" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyB" android:text="b" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyB" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="&gt;" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyN" android:text="n" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyN" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="\\" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyM" android:text="m" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyM" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="/" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle" android:layout_weight="1.5">
+                <Button android:id="@+id/keyDel" android:text="⌫" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyDel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Del" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+        </LinearLayout> -->
+ </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <FrameLayout style="@style/KeyStyle" android:layout_weight="1.5">
+                <Button android:id="@+id/keyNums" android:text="123" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyClip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Clip" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyEmog" android:text="M" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyEmog" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Emoji" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keySim" android:text="," style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keySim" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="، ؟" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+
+            <FrameLayout
+               
+                android:layout_weight="3"
+                 style="@style/KeyStyle">
+                <Button
+                    android:id="@+id/keySpace"
+                    android:text="SPACE"
+                    android:layout_width="match_parent"
+                    style="@style/KeyStyle1"/>
+                <TextView
+                    android:id="@+id/hint_keySpace"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Space"
+                    android:textSize="10sp"
+                    android:textColor="#AAA"
+                    android:layout_gravity="top|end"
+                    android:padding="2dp"
+                    android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <com.example.ime.views.Letter
+    android:id="@+id/my_button"
+    android:layout_width="0dp"
+    android:layout_weight="1"
+    android:layout_height="match_parent"
+    android:tag="n"
+    android:contentDescription=""
+    
+/>
+<!-- <com.example.ime.views.Special
+    android:id="@+id/my_button"
+    android:layout_width="0dp"
+    android:layout_weight="1"
+    android:layout_height="match_parent"
+    android:tag="ca"
+    android:contentDescription=""
+    
+/> -->
+
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyDot" android:text="." style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyDot" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="." android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keyClip" android:text="" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyClip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            <ImageView
+    android:id="@+id/pinIcon"
+    android:layout_width="30dp"
+    android:layout_height="35dp"
+    android:layout_gravity="center"
+    android:src="@drawable/ic_clipboard"
+
+ />
+            </FrameLayout>
+            <FrameLayout android:visibility="gone" style="@style/KeyStyle" android:layout_weight="1.5">
+                <Button android:id="@+id/keyEnter" android:text="⌫" style="@style/KeyStyle1"/>
+                <TextView android:id="@+id/hint_keyEnter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Enter" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent"/>
+            </FrameLayout>
+            <com.example.ime.views.Enter
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:tag="→"
+                android:contentDescription=""
+                />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/altPopupContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#222"
+        android:padding="2dp"
+        android:visibility="gone"
+        android:elevation="1000dp" />
+   <LinearLayout 
+    android:id="@+id/clipboard_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#222"
+    android:orientation="vertical"
+     android:visibility="gone">
+
+    <!-- الأزرار العلوية -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <Button android:id="@+id/btnClipSettings" android:text="&#x2699;" style="@style/clipBtnsStyle" />
+        <Button android:id="@+id/btnClipGoToTop" android:text="&#x25b2;" style="@style/clipBtnsStyle"/>
+        <Button android:id="@+id/btn_close_clipboard" android:text="&#x2716;" style="@style/clipBtnsStyle" />
+
+    </LinearLayout>
+
+    <!-- ScrollView يحتل باقي الشاشة -->
+    <ScrollView
+        android:id="@+id/scroll_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        >
+        <!-- android:fillViewport="true" -->
+
+        <LinearLayout
+            android:id="@+id/scroll_buttons_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#222" />
+    </ScrollView>
+
+</LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/customDialogContainer"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:background="#222"
+        android:elevation="8dp"
+       android:clickable="true"
+        android:focusable="true"
+       android:layout_marginTop="30dp"
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+        android:layout_margin="2dp"
+        android:orientation="horizontal"
+        android:background="#2d2d2d"
+        android:elevation="8dp"
+        android:layout_weight="3"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+        <TextView
+            android:id="@+id/dialogText"
+            android:layout_margin="2dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#2d2d2d"
+            android:textColor="#FFF"
+            android:padding="10dp"
+            android:text="هل تريد المتابعة؟"
+            android:gravity="top|center" 
+            android:maxLines="12"
+            android:ellipsize="end"
+
+     />
+  
+    
+            </LinearLayout>
+            <LinearLayout
+        
+        android:orientation="horizontal"
+        android:elevation="8dp"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+        <Button android:id="@+id/btnClipMoreDelete" style="@style/clipBtnsMoreStyle" android:text="حذف" />
+        <Button android:id="@+id/btnClipMoreCopy" style="@style/clipBtnsMoreStyle" android:text="نسخ" />
+        <Button android:id="@+id/btnClipMorePin" style="@style/clipBtnsMoreStyle" android:text="تثبيت" />
+        <Button android:id="@+id/btnClipMoreCancel" style="@style/clipBtnsMoreStyle" android:text="الغاء" />
+
+        
+    </LinearLayout>
+    </LinearLayout>
+<!-- 
+<LinearLayout 
+    android:id="@+id/emoji_panel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    android:background="#FFFFFF"
+    android:visibility="gone">
+    <LinearLayout
+        android:id="@+id/emoji_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+    </LinearLayout> -->
+     <LinearLayout 
+    android:id="@+id/emoji_panel"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#222"
+    android:orientation="vertical"
+     android:visibility="gone">
+
+    <!-- الأزرار العلوية -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+
+        <Button android:id="@+id/btn_close_emog" android:text="&#x2716;" style="@style/clipBtnsStyle" />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/emogScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        >
+        <LinearLayout
+            android:id="@+id/emoji_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#222" />
+    </ScrollView>
+
+</LinearLayout>
+</FrameLayout>

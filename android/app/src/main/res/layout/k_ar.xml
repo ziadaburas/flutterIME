@@ -1,0 +1,117 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/keyboard_keys"
+        android:layout_width="match_parent"
+        android:layout_height="325dp"
+        android:orientation="vertical">
+        <!-- Row 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:orientation="horizontal">
+            <com.example.ime.views.LeftKey style="@style/LetterStyle" app:text="←" app:popupKeys="" />
+            <com.example.ime.views.UpKey style="@style/LetterStyle" app:text="↑" app:popupKeys="Home" />
+            <com.example.ime.views.Tab style="@style/LetterStyle" app:text="Tab" app:popupKeys="" />
+            <com.example.ime.views.Ctrl style="@style/LetterStyle" app:text="Ctrl" app:popupKeys="" />
+            <com.example.ime.views.Alt style="@style/LetterStyle" app:text="Alt" app:popupKeys="" />
+            <com.example.ime.views.Shift style="@style/LetterStyle" app:text="Shift" app:popupKeys="" />
+            <com.example.ime.views.DownKey style="@style/LetterStyle" app:text="↓" app:popupKeys="End" />
+            <com.example.ime.views.RightKey style="@style/LetterStyle" app:text="→" app:popupKeys="" />
+        </LinearLayout>
+        <!-- Row 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="1" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="2" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="3" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="4" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="5" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="6" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="7" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="8" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="9" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="0" app:popupKeys="!" />
+        </LinearLayout>
+        <!-- Row 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ض" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ص" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ق" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ف" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="غ" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ع" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ه" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="خ" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ح" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ج" app:popupKeys="!" />
+        </LinearLayout>
+        <!-- Row 4 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ش" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="س" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ي" app:popupKeys="ى ئ" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ب" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ل" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ا" app:popupKeys="ء أ إ آ" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ت" app:popupKeys="ـ" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ن" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="م" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ك" app:popupKeys="؛" />
+        </LinearLayout>
+        <!-- Row 5 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ظ" app:popupKeys="َ ِ ُ ً ٍ ٌ ّ ْ" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ط" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ذ" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="د" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ز" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ر" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="و" app:popupKeys="ؤ" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ة" app:popupKeys="!" />
+            <com.example.ime.views.Letter style="@style/LetterStyle" app:text="ث" app:popupKeys="!" />
+            <com.example.ime.views.Delete android:layout_width="0dp" android:layout_weight="1.5" android:layout_height="match_parent" app:text="⌫" app:popupKeys="" />
+        </LinearLayout>
+        <!-- Row 6 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+            <com.example.ime.views.Symbols app:popupKeys="" app:text="123" android:layout_width="0dp" android:layout_weight="1.5" android:layout_height="match_parent" />
+            <com.example.ime.views.Emoji
+                android:id="@+id/my_button_clip"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                app:text=""
+                app:popupKeys=""
+                android:background="@android:color/transparent" />
+
+            <!-- <FrameLayout style="@style/KeyStyle">
+                <Button android:id="@+id/keySim" android:text="," style="@style/KeyStyle1" />
+                <TextView android:id="@+id/hint_keySim" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="، ؟" android:textSize="10sp" android:textColor="#AAA" android:layout_gravity="top|end" android:padding="2dp" android:background="@android:color/transparent" />
+            </FrameLayout> -->
+            <com.example.ime.views.Letter android:id="@+id/my_button_comma" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" app:text="," app:popupKeys="،" />
+            <com.example.ime.views.Space android:id="@+id/my_button_space" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" app:text="n" app:popupKeys="" />
+            <com.example.ime.views.Letter android:id="@+id/my_button_dot" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" app:text="." app:popupKeys="" />
+            <com.example.ime.views.Clip android:id="@+id/my_button_clip" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" app:text="" app:popupKeys="" android:background="@android:color/transparent" />
+            <com.example.ime.views.Enter style="@style/LetterStyle" app:text="⏎" app:popupKeys="" />
+        </LinearLayout>
+    </LinearLayout>
