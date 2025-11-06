@@ -16,6 +16,7 @@ constructor(
 ) : Key(context, attrs, defStyle) {
     
     abstract val listener: ValueListener<Int>
+    
     open fun disable() {
         FlutterIME.ime.sendKeyUp(keyCode)
         listener.value = 0
