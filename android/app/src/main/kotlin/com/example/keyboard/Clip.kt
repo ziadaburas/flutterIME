@@ -7,6 +7,9 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import com.example.ime.FlutterIME
 import com.example.ime.R
+import android.graphics.drawable.*
+import android.view.*
+import android.graphics.*
 
 open class Clip
 @JvmOverloads
@@ -15,16 +18,14 @@ constructor(
     attrs: AttributeSet? = null,
     defStyle: Int = android.R.attr.buttonStyle
 ) : Key(context, attrs, defStyle) {
+    override var backgroundImg = R.drawable.ic_clipboard
+
     init {
-        val img = ImageView(context).apply {
-            setImageResource(R.drawable.ic_clipboard)
-            val params = FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, dpToPx(35f).toInt())
-            params.gravity = android.view.Gravity.CENTER
-            layoutParams = params
-            setBackgroundColor(Color.TRANSPARENT)
-        }
-        addView(img)
+        
+        text = "" 
+        
     }
+    
     override fun onClick() {
         super.onClick()
         val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.ClipboardView>(R.id.clipboard)

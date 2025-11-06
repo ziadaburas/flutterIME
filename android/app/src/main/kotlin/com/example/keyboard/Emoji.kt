@@ -18,36 +18,9 @@ constructor(
 ) : Key(context, attrs, defStyle) {
     override var backgroundImg = R.drawable.emoji_language
     init {
-        val img = ImageView(context).apply {
-            setImageResource(R.drawable.ic_clipboard)
-            val params = FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, dpToPx(35f).toInt())
-            params.gravity = android.view.Gravity.CENTER
-            layoutParams = params
-            setBackgroundColor(Color.TRANSPARENT)
-        }
-       // addView(img)
-    text = "\u2661"
-    val icon = context.getDrawable( R.drawable.emoji_language) 
-            icon?.setBounds(0, 0, icon.intrinsicWidth, icon.intrinsicHeight)
-
-            val layer = LayerDrawable(arrayOf(icon)).apply {
-                setLayerGravity(0, Gravity.CENTER)
-            }
-            // setImageResource(R.drawable.ic_arrow_back)
-            background =layer
-        
+        text = ""
     }
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        val icon = context.getDrawable( R.drawable.emoji_language) 
-            icon?.setBounds(0, 0, icon.intrinsicWidth, icon.intrinsicHeight)
-
-            val layer = LayerDrawable(arrayOf(icon)).apply {
-                setLayerGravity(0, Gravity.CENTER)
-            }
-            // setImageResource(R.drawable.ic_arrow_back)
-            background =layer
-    }
+   
     override fun onClick() {
         super.onClick()
         val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.EmojiView>(R.id.emoji)
