@@ -47,6 +47,8 @@ import android.app.AlertDialog
  import android.view.WindowManager
 import android.view.Gravity
 import kotlinx.coroutines.*
+import com.example.ime.utils.KeyboardLayoutBuilder
+
 class FlutterIME : InputMethodService() {
     companion object {
         lateinit var ime:FlutterIME
@@ -56,6 +58,8 @@ class FlutterIME : InputMethodService() {
     private lateinit var methodChannel: MethodChannel
     private lateinit var flutterEngine: FlutterEngine
     lateinit var inflater: LayoutInflater
+    private lateinit var keyboardBuilder: KeyboardLayoutBuilder
+    
 
     var keyboardHeight=1
     var currentLang="en"
@@ -74,6 +78,8 @@ class FlutterIME : InputMethodService() {
         var view = inflater.inflate(lang, null) as ViewGroup
         
         rootView= view
+        keyboardBuilder = KeyboardLayoutBuilder(rootView.context)
+
         /*if(currentLang=="ar") {
             currentLang = "en"
             switchLang()
@@ -304,7 +310,6 @@ class FlutterIME : InputMethodService() {
         val clipboard =  this.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
         val clip = clipboard.primaryClip
-   
         if (clip != null && clip.itemCount > 0 ) {
             val copiedText =clip.getItemAt(0).coerceToText(this).toString()
             if (copiedText.isNotBlank() && copiedText != lastCopy && clipboardFlag) {
@@ -397,7 +402,43 @@ class FlutterIME : InputMethodService() {
         if (selectedText != null && selectedText.isNotEmpty()) return selectedText.toString()
         return ""
     }
+    private fun setKeyboardKeysProgrammatically(isArabic: Boolean) {
+        val oldKeysView = rootView.findViewById<View>(R.id.keyboard_keys)
+        
+        if (oldKeysView != null) {
+            val parent = oldKeysView.parent as? ViewGroup
+            val index = parent?.indexOfChild(oldKeysView) ?: -1
+            
+            if (parent != null && index != -1) {
+                // إنشاء الكيبورد الجديد
+                val newKeysView = if (isArabic) {
+                    keyboardBuilder.buildArabicKeyboard()
+                } else {
+                    keyboardBuilder.buildEnglishKeyboard()
+                }
+                
+                // تعيين ID للعنصر الجديد
+                newKeysView.id = R.id.keyboard_keys
+                
+                // استبدال العنصر القديم بالجديد
+                parent.removeViewAt(index)
+                parent.addView(newKeysView, index)
+            }
+        }
+    }
     fun switchLang() {
+        if (currentLang == "ar") {
+            currentLang = "en"
+            setKeyboardKeysProgrammatically(false) // false = English
+        } else {
+            currentLang = "ar"
+            setKeyboardKeysProgrammatically(true) // true = Arabic
+        }
+        com.example.ime.views.Key.isSymbols.value = false
+        saveLang()
+    }
+
+    fun switchLang1() {
         if (currentLang == "ar") {
             currentLang = "en"
             setKeyboardKeys(R.layout.k_en)
