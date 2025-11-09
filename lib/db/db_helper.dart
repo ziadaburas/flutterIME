@@ -2,30 +2,33 @@
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import '../models/layout.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
-  DatabaseHelper._internal();
-
+  static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
+
+  DatabaseHelper._init();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDatabase();
+    _database = await _initDB('layouts.db');
     return _database!;
   }
 
-  Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'layouts.db');
+  Future<Database> _initDB(String filePath) async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, filePath);
+
     return await openDatabase(
       path,
-      version: 1,
-      onCreate: _onCreate,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
   }
 
-  Future<void> _onCreate(Database db, int version) async {
+  Future<void> _createDB(Database db, int version) async {
     await db.execute('''
       CREATE TABLE layouts (
         lang TEXT PRIMARY KEY,
@@ -34,10 +37,18 @@ class DatabaseHelper {
     ''');
   }
 
-  // حفظ أو تحديث التخطيط
-  Future<void> insertOrUpdate(String lang, Map<String, dynamic> layoutMap) async {
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < newVersion) {
+      await db.execute('DROP TABLE IF EXISTS layouts');
+      await _createDB(db, newVersion);
+    }
+  }
+
+  // إدراج أو تحديث تخطيط
+  Future<void> insertOrUpdateLayout(String lang, KeyboardLayout layout) async {
     final db = await database;
-    String layoutJson = jsonEncode(layoutMap);
+    final layoutJson = jsonEncode(layout.toJson());
+    
     await db.insert(
       'layouts',
       {'lang': lang, 'layout': layoutJson},
@@ -45,109 +56,66 @@ class DatabaseHelper {
     );
   }
 
-  // الحصول على التخطيط
-  Future<Map<String, dynamic>?> getLayout(String lang) async {
+  // الحصول على تخطيط
+  Future<KeyboardLayout?> getLayout(String lang) async {
     final db = await database;
-    List<Map<String, dynamic>> results = await db.query(
+    final maps = await db.query(
       'layouts',
       where: 'lang = ?',
       whereArgs: [lang],
     );
 
-    if (results.isNotEmpty) {
-      String layoutJson = results.first['layout'];
-      return jsonDecode(layoutJson);
+    if (maps.isNotEmpty) {
+      final layoutJson = jsonDecode(maps.first['layout'] as String);
+      return KeyboardLayout.fromJson(layoutJson);
     }
     return null;
   }
 
-  // الحصول على التخطيط أو إنشاء واحد افتراضي
-  Future<Map<String, dynamic>> getOrCreateLayout(String lang) async {
-    Map<String, dynamic>? existing = await getLayout(lang);
-    if (existing != null) return existing;
-
-    Map<String, dynamic> defaultLayout = lang == 'ar' ? _getDefaultArabic() : _getDefaultEnglish();
-    await insertOrUpdate(lang, defaultLayout);
-    return defaultLayout;
+  // الحصول على جميع اللغات
+  Future<List<String>> getAllLanguages() async {
+    final db = await database;
+    final result = await db.query('layouts', columns: ['lang']);
+    return result.map((e) => e['lang'] as String).toList();
   }
 
-  // إدراج التخطيطات الافتراضية
+  // حذف تخطيط
+  Future<void> deleteLayout(String lang) async {
+    final db = await database;
+    await db.delete(
+      'layouts',
+      where: 'lang = ?',
+      whereArgs: [lang],
+    );
+  }
+
+  // إنشاء التخطيطات الافتراضية
   Future<void> insertDefaultLayouts() async {
-    if (await getLayout('en') == null) {
-      await insertOrUpdate('en', _getDefaultEnglish());
+    final languages = await getAllLanguages();
+    
+    if (!languages.contains('en')) {
+      await insertOrUpdateLayout('en', KeyboardLayout.defaultEnglish());
     }
-    if (await getLayout('ar') == null) {
-      await insertOrUpdate('ar', _getDefaultArabic());
+    if (!languages.contains('ar')) {
+      await insertOrUpdateLayout('ar', KeyboardLayout.defaultArabic());
     }
   }
 
-  Map<String, dynamic> _getDefaultEnglish() {
-    return {
-      "navRow": {
-        "Left": {"hint": "", "fun": "loop"},
-        "Up": {"hint": "Home", "fun": "sendHome"},
-        "Tab": {"hint": "", "fun": ""},
-        "Ctrl": {"fun": "hold"},
-        "Alt": {"fun": "hold"},
-        "Shift": {"fun": "hold"},
-        "Down": {"hint": "End", "fun": "sendEnd"},
-        "Right": {"hint": "", "fun": ""}
-      },
-      "numRow": {
-        "1": "!", "2": "@", "3": "#", "4": "\$", "5": "%",
-        "6": "^", "7": "&", "8": "*", "9": "(", "0": ")"
-      },
-      "row1": {
-        "q": "( ) ()", "w": "{ } {}", "e": "[ ] []", "r": "& &&", "t": "| ||",
-        "y": "= == =>", "u": "+ ++ +=", "i": "- ->", "o": "\$", "p": "#"
-      },
-      "row2": {
-        "a": "@ • @gmail.com", "s": "! !=", "d": "~", "f": "?",
-        "g": "* **", "h": "%", "j": "_ __", "k": ":", "l": ";"
-      },
-      "row3": {
-        "z": "' ''", "x": "\" \"\"", "c": "`", "v": "< <= <>",
-        "b": "> >= </>", "n": "/ // /**/", "m": "\\"
-      },
-      "bottomRow": {
-        "symbols": "123", "emoji": "", "comma": ",", "space": "",
-        "dot": ".", "clip": "", "enter": "⏎"
-      }
-    };
+  // الحصول على أو إنشاء تخطيط
+  Future<KeyboardLayout> getOrCreateLayout(String lang) async {
+    var layout = await getLayout(lang);
+    if (layout != null) return layout;
+
+    layout = lang == 'ar' 
+        ? KeyboardLayout.defaultArabic() 
+        : KeyboardLayout.defaultEnglish();
+    
+    await insertOrUpdateLayout(lang, layout);
+    return layout;
   }
 
-  Map<String, dynamic> _getDefaultArabic() {
-    return {
-      "navRow": {
-        "Left": {"hint": "", "fun": "loop"},
-        "Up": {"hint": "Home", "fun": "sendHome"},
-        "Tab": {"hint": "", "fun": ""},
-        "Ctrl": {"fun": "hold"},
-        "Alt": {"fun": "hold"},
-        "Shift": {"fun": "hold"},
-        "Down": {"hint": "End", "fun": "sendEnd"},
-        "Right": {"hint": "", "fun": ""}
-      },
-      "numRow": {
-        "1": "!", "2": "\"", "3": "·", "4": ":", "5": "؟",
-        "6": "؛", "7": "-", "8": "_", "9": "(", "0": ")"
-      },
-      "row1": {
-        "ض": "!", "ص": "!", "ق": "!", "ف": "!", "غ": "!", "ع": "!",
-        "ه": "!", "خ": "!", "ح": "!", "ج": "!"
-      },
-      "row2": {
-        "ش": "!", "س": "!", "ي": "ى ئ", "ب": "!", "ل": "!",
-        "ا": "ء أ إ آ", "ت": "ـ", "ن": "!", "م": "!", "ك": "؛"
-      },
-      "row3": {
-        "ظ": "َ ِ ُ ً ٍ ٌ ّ ْ", "ط": "!", "ذ": "!", "د": "!",
-        "ز": "!", "ر": "!", "و": "ؤ", "ة": "!", "ث": "!"
-      },
-      "bottomRow": {
-        "symbols": "123", "emoji": "", "comma": "،", "space": "",
-        "dot": ".", "clip": "", "enter": "⏎"
-      }
-    };
+  Future<void> close() async {
+    final db = await database;
+    await db.close();
   }
 }

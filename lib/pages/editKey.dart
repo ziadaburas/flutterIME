@@ -1,311 +1,340 @@
+ 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../models/layout.dart';
 
-class EditKeyScreen extends StatefulWidget {
-  final String currentKey;
-  final dynamic currentValue;
-  final String rowKey;
+class KeyEditorDialog extends StatefulWidget {
+  final KeyModel? key1;
 
-  const EditKeyScreen({
-    super.key,
-    required this.currentKey,
-    required this.currentValue,
-    required this.rowKey,
-  });
+  const KeyEditorDialog({Key? key, this.key1}) : super(key: key);
 
   @override
-  State<EditKeyScreen> createState() => _EditKeyScreenState();
+  State<KeyEditorDialog> createState() => _KeyEditorDialogState();
 }
 
-class _EditKeyScreenState extends State<EditKeyScreen> {
-  late TextEditingController _keyController;
-  late TextEditingController _valueController;
-  late TextEditingController _hintController;
-  late TextEditingController _funController;
+class _KeyEditorDialogState extends State<KeyEditorDialog> {
+  final _formKey = GlobalKey<FormState>();
   
-  bool _isNavRow = false;
-  bool _isComplexValue = false;
+  late String _type;
+  late double _weight;
+  late TextEditingController _textController;
+  late TextEditingController _hintController;
+  late TextEditingController _keyCodeController;
+  late TextEditingController _clickController;
+  late TextEditingController _longPressController;
+
+  final List<String> _keyTypes = [
+    'letter',
+    'specialKey',
+    'normal',
+    'loopKey',
+    'space',
+    'delete',
+    'emoji',
+    'symbols',
+    'clip',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _isNavRow = widget.rowKey == 'navRow';
     
-    _keyController = TextEditingController(text: widget.currentKey);
-    
-    if (_isNavRow && widget.currentValue is Map) {
-      _isComplexValue = true;
-      Map<String, dynamic> valueMap = widget.currentValue;
-      _valueController = TextEditingController();
-      _hintController = TextEditingController(text: valueMap['hint'] ?? '');
-      _funController = TextEditingController(text: valueMap['fun'] ?? '');
-    } else {
-      _isComplexValue = false;
-      _valueController = TextEditingController(
-        text: widget.currentValue?.toString() ?? '',
+    if (widget.key != null) {
+      _type = widget.key1!.type;
+      _weight = widget.key1!.weight;
+      _textController = TextEditingController(text: widget.key1!.text);
+      _hintController = TextEditingController(text: widget.key1!.hint);
+      _keyCodeController = TextEditingController(
+        text: widget.key1!.keyCode?.toString() ?? ''
       );
+      _clickController = TextEditingController(text: widget.key1!.click ?? '');
+      _longPressController = TextEditingController(text: widget.key1!.longPress ?? '');
+    } else {
+      _type = 'letter';
+      _weight = 1.0;
+      _textController = TextEditingController();
       _hintController = TextEditingController();
-      _funController = TextEditingController();
+      _keyCodeController = TextEditingController();
+      _clickController = TextEditingController();
+      _longPressController = TextEditingController();
     }
   }
 
   @override
   void dispose() {
-    _keyController.dispose();
-    _valueController.dispose();
+    _textController.dispose();
     _hintController.dispose();
-    _funController.dispose();
+    _keyCodeController.dispose();
+    _clickController.dispose();
+    _longPressController.dispose();
     super.dispose();
   }
 
-  void _saveKey() {
-    String key = _keyController.text.trim();
-    
-    if (key.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء إدخال اسم المفتاح'),
-          backgroundColor: Colors.red,
-        ),
+  void _save() {
+    if (_formKey.currentState!.validate()) {
+      final newKey = KeyModel(
+        type: _type,
+        weight: _weight,
+        text: _textController.text,
+        hint: _hintController.text,
+        keyCode: _keyCodeController.text.isEmpty 
+            ? null 
+            : int.tryParse(_keyCodeController.text),
+        click: _clickController.text.isEmpty ? null : _clickController.text,
+        longPress: _longPressController.text.isEmpty 
+            ? null 
+            : _longPressController.text,
       );
-      return;
+      
+      Navigator.pop(context, newKey);
     }
-
-    dynamic value;
-    if (_isComplexValue) {
-      value = {
-        'hint': _hintController.text.trim(),
-        'fun': _funController.text.trim(),
-      };
-    } else {
-      value = _valueController.text.trim();
-    }
-
-    Navigator.pop(context, {
-      'key': key,
-      'value': value,
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.currentKey.isEmpty ? 'إضافة مفتاح جديد' : 'تعديل المفتاح'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _saveKey,
-            tooltip: 'حفظ',
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildInfoCard(),
-            const SizedBox(height: 20),
-            _buildKeyField(),
-            const SizedBox(height: 16),
-            if (_isNavRow) ...[
-              _buildSwitchCard(),
-              const SizedBox(height: 16),
-            ],
-            if (_isComplexValue)
-              ..._buildComplexFields()
-            else
-              _buildSimpleValueField(),
-            const SizedBox(height: 24),
-            _buildSaveButton(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard() {
-    return Card(
-      color: Colors.blue.shade50,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.blue.shade200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.info_outline, color: Colors.blue.shade700),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                _isNavRow
-                    ? 'صف التنقل يدعم القيم البسيطة والمعقدة (hint, fun)'
-                    : 'يمكنك تعديل اسم المفتاح والقيمة المرتبطة به',
-                style: TextStyle(
-                  color: Colors.blue.shade900,
-                  fontSize: 14,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: AlertDialog(
+        title: Text(widget.key == null ? 'إضافة مفتاح جديد' : 'تعديل المفتاح'),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // نوع المفتاح
+                DropdownButtonFormField<String>(
+                  value: _type,
+                  decoration: const InputDecoration(
+                    labelText: 'نوع المفتاح',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.category),
+                  ),
+                  items: _keyTypes.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: _getKeyColor(type),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(type),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() => _type = value!);
+                  },
                 ),
-              ),
+                
+                const SizedBox(height: 16),
+                
+                // النص
+                TextFormField(
+                  controller: _textController,
+                  decoration: const InputDecoration(
+                    labelText: 'النص',
+                    hintText: 'النص الظاهر على المفتاح',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.text_fields),
+                  ),
+                  validator: (value) {
+                    if (_type == 'letter' && (value == null || value.isEmpty)) {
+                      return 'الرجاء إدخال النص';
+                    }
+                    return null;
+                  },
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // التلميح
+                TextFormField(
+                  controller: _hintController,
+                  decoration: const InputDecoration(
+                    labelText: 'التلميح (اختياري)',
+                    hintText: 'النص عند الضغط المطول',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.comment),
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // الوزن
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'الوزن: ${_weight.toStringAsFixed(1)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Slider(
+                      value: _weight,
+                      min: 0.5,
+                      max: 5.0,
+                      divisions: 45,
+                      label: _weight.toStringAsFixed(1),
+                      onChanged: (value) {
+                        setState(() => _weight = value);
+                      },
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // حقول متقدمة
+                ExpansionTile(
+                  title: const Text('إعدادات متقدمة'),
+                  initiallyExpanded: widget.key1?.keyCode != null ||
+                      widget.key1?.click != null ||
+                      widget.key1?.longPress != null,
+                  children: [
+                    const SizedBox(height: 8),
+                    
+                    // KeyCode
+                    if (_type == 'specialKey')
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: TextFormField(
+                          controller: _keyCodeController,
+                          decoration: const InputDecoration(
+                            labelText: 'KeyCode (للمفاتيح الخاصة)',
+                            hintText: 'مثال: 113',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.code),
+                          ),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                        ),
+                      ),
+                    
+                    // Click
+                    if (_type == 'normal' || _type == 'loopKey')
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: TextFormField(
+                          controller: _clickController,
+                          decoration: const InputDecoration(
+                            labelText: 'وظيفة النقر',
+                            hintText: 'مثال: sendHome, loop',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.touch_app),
+                          ),
+                        ),
+                      ),
+                    
+                    // LongPress
+                    if (_type == 'normal')
+                      TextFormField(
+                        controller: _longPressController,
+                        decoration: const InputDecoration(
+                          labelText: 'وظيفة الضغط المطول',
+                          hintText: 'مثال: sendEnd',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.ads_click),
+                        ),
+                      ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // معاينة المفتاح
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'معاينة:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getKeyColor(_type),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            _textController.text.isEmpty 
+                                ? '␣' 
+                                : _textController.text,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildKeyField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'اسم المفتاح',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _keyController,
-          decoration: InputDecoration(
-            hintText: 'مثال: q, a, 1, Left',
-            prefixIcon: const Icon(Icons.vpn_key),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade50,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSwitchCard() {
-    return Card(
-      elevation: 0,
-      color: Colors.grey.shade50,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade300),
-      ),
-      child: SwitchListTile(
-        title: const Text(
-          'قيمة معقدة (Complex Value)',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: const Text('تفعيل لاستخدام hint و fun'),
-        value: _isComplexValue,
-        onChanged: (value) {
-          setState(() {
-            _isComplexValue = value;
-          });
-        },
-      ),
-    );
-  }
-
-  Widget _buildSimpleValueField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'القيمة',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _valueController,
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: 'مثال: ( ) (), ! !=, ض',
-            prefixIcon: const Icon(Icons.text_fields),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade50,
-          ),
-        ),
-      ],
-    );
-  }
-
-  List<Widget> _buildComplexFields() {
-    return [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Hint (تلميح)',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _hintController,
-            decoration: InputDecoration(
-              hintText: 'مثال: Home, End',
-              prefixIcon: const Icon(Icons.lightbulb_outline),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-            ),
+          ElevatedButton(
+            onPressed: _save,
+            child: const Text('حفظ'),
           ),
         ],
       ),
-      const SizedBox(height: 16),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Function (الوظيفة)',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _funController,
-            decoration: InputDecoration(
-              hintText: 'مثال: loop, sendHome, hold',
-              prefixIcon: const Icon(Icons.functions),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-            ),
-          ),
-        ],
-      ),
-    ];
+    );
   }
 
-  Widget _buildSaveButton() {
-    return ElevatedButton.icon(
-      onPressed: _saveKey,
-      icon: const Icon(Icons.save),
-      label: const Text(
-        'حفظ التغييرات',
-        style: TextStyle(fontSize: 16),
-      ),
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
+  Color _getKeyColor(String type) {
+    final colors = {
+      'letter': Colors.blue,
+      'specialKey': Colors.purple,
+      'normal': Colors.teal,
+      'loopKey': Colors.orange,
+      'space': Colors.green,
+      'delete': Colors.red,
+      'emoji': Colors.pink,
+      'symbols': Colors.indigo,
+      'clip': Colors.brown,
+    };
+    return colors[type] ?? Colors.grey;
   }
 }

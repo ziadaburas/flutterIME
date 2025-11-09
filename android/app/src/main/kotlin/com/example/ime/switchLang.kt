@@ -8,15 +8,14 @@ import com.example.ime.db.KeyboardLayoutDB
 import com.example.ime.views.*
 import org.json.JSONException
 import org.json.JSONObject
+import org.json.JSONArray
 
 class KeyboardLayoutBuilder(private val context: Context) {
 
     companion object {
         private const val TAG = "KeyboardLayoutBuilder"
         const val KEYBOARD_HEIGHT = 325
-        const val ROW_HEIGHT = 45
         const val DEFAULT_WEIGHT = 1f
-        const val LARGE_KEY_WEIGHT = 1.5f
     }
 
     private val db = KeyboardLayoutDB(context)
@@ -48,28 +47,20 @@ class KeyboardLayoutBuilder(private val context: Context) {
         }
     }
 
-    // بناء الكيبورد من JSON
+    // بناء الكيبورد من JSON بالبنية الجديدة
     private fun buildFromJson(json: JSONObject, lang: String): LinearLayout {
         val mainLayout = createMainLayout()
         try {
-            val navRow = json.optJSONObject("navRow") ?: JSONObject()
-            mainLayout.addView(createNavRow(navRow))
-
-            val numRow = json.optJSONObject("numRow") ?: JSONObject()
-            mainLayout.addView(createSimpleRow(numRow))
-
-            val row1 = json.optJSONObject("row1") ?: JSONObject()
-            mainLayout.addView(createLetterRow(row1))
-
-            val row2 = json.optJSONObject("row2") ?: JSONObject()
-            mainLayout.addView(createLetterRow(row2))
-
-            val row3 = json.optJSONObject("row3") ?: JSONObject()
-            // ✅ لا نضيف CapsLock إذا كانت اللغة عربية
-            mainLayout.addView(createLetterRow(row3,lang= lang,true))
-
-            val bottom = json.optJSONObject("bottomRow") ?: JSONObject()
-            mainLayout.addView(createBottomRow(bottom))
+            // بناء الصفوف من row1 إلى row6
+            for (i in 1..6) {
+                val rowKey = "row$i"
+                val rowObj = json.optJSONObject(rowKey)
+                if (rowObj != null) {
+                    mainLayout.addView(createDynamicRow(rowObj))
+                } else {
+                    Log.w(TAG, "Row $rowKey not found in JSON")
+                }
+            }
 
         } catch (ex: JSONException) {
             Log.e(TAG, "JSONException while building layout: ${ex.message}", ex)
@@ -80,6 +71,75 @@ class KeyboardLayoutBuilder(private val context: Context) {
         }
 
         return mainLayout
+    }
+
+    // إنشاء صف ديناميكي من JSON
+    private fun createDynamicRow(rowObj: JSONObject): LinearLayout {
+        val height = rowObj.optInt("height", 55)
+        val row = createRow(height = height)
+        
+        val keysArray = rowObj.optJSONArray("keys")
+        if (keysArray != null) {
+            for (i in 0 until keysArray.length()) {
+                try {
+                    val keyObj = keysArray.getJSONObject(i)
+                    val key = createKeyFromJson(keyObj)
+                    row.addView(key)
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Failed to create key at index $i: ${ex.message}", ex)
+                }
+            }
+        }
+        
+        return row
+    }
+
+    // إنشاء مفتاح من JSON بشكل ديناميكي
+    private fun createKeyFromJson(keyObj: JSONObject): Key {
+        val type = keyObj.optString("type", "letter")
+        val weight = keyObj.optDouble("weight", 1.0).toFloat()
+        val text = keyObj.optString("text", "")
+        val hint = keyObj.optString("hint", "")
+        
+        // تحديد نوع المفتاح بناءً على type
+        val keyClass: Class<out Key> = when (type) {
+            "letter" -> Letter::class.java
+            "specialKey" -> when (text.lowercase()) {
+                "ctrl" -> Ctrl::class.java
+                "alt" -> Alt::class.java
+                "shift" -> Shift::class.java
+                "⇧" -> Capslock::class.java
+                else -> Special::class.java
+            }
+            "loopKey" -> when (text) {
+                "←" -> LeftKey::class.java
+                "→" -> RightKey::class.java
+                else -> LoopKey::class.java
+            }
+            "normal" -> when (text) {
+                "↑" -> UpKey::class.java
+                "↓" -> DownKey::class.java
+                "⇥" -> Tab::class.java
+                "⏎" -> Enter::class.java
+                else -> Normal::class.java
+            }
+            "space" -> Space::class.java
+            "delete" -> Delete::class.java
+            "emoji" -> Emoji::class.java
+            "symbols" -> Symbols::class.java
+            "clip" -> Clip::class.java
+            else -> {
+                Log.w(TAG, "Unknown key type: $type, defaulting to Letter")
+                Letter::class.java
+            }
+        }
+        
+        return try {
+            createKey(keyClass, text, hint, weight, keyObj)
+        } catch (ex: Exception) {
+            Log.e(TAG, "Failed to create key of type $type: ${ex.message}", ex)
+            createKey(Letter::class.java, text, hint, weight, keyObj)
+        }
     }
 
     // إذا فشلنا، نبني الافتراضي من القاعدة
@@ -97,154 +157,64 @@ class KeyboardLayoutBuilder(private val context: Context) {
     private fun createFallbackKeyboard(lang: String): LinearLayout {
         val main = createMainLayout()
 
-        // navRow
-        main.addView(createRow(ROW_HEIGHT).apply {
-            addView(safeCreateKey(LeftKey::class.java, "←", ""))
-            addView(safeCreateKey(UpKey::class.java, "↑", ""))
-            addView(safeCreateKey(Tab::class.java, "⇥", ""))
-            addView(safeCreateKey(Ctrl::class.java, "Ctrl", ""))
-            addView(safeCreateKey(Alt::class.java, "Alt", ""))
-            addView(safeCreateKey(Shift::class.java, "Shift", ""))
-            addView(safeCreateKey(DownKey::class.java, "↓", ""))
-            addView(safeCreateKey(RightKey::class.java, "→", ""))
+        // row1 - navRow
+        main.addView(createRow(height = 45).apply {
+            addView(createSimpleKey(LeftKey::class.java, "←", ""))
+            addView(createSimpleKey(UpKey::class.java, "↑", ""))
+            addView(createSimpleKey(Tab::class.java, "⇥", ""))
+            addView(createSimpleKey(Ctrl::class.java, "Ctrl", ""))
+            addView(createSimpleKey(Alt::class.java, "Alt", ""))
+            addView(createSimpleKey(Shift::class.java, "Shift", ""))
+            addView(createSimpleKey(DownKey::class.java, "↓", ""))
+            addView(createSimpleKey(RightKey::class.java, "→", ""))
         })
 
-        // numRow
+        // row2 - numRow
         main.addView(createRow().apply {
             listOf("1","2","3","4","5","6","7","8","9","0").forEach {
-                addView(safeCreateKey(Letter::class.java, it, "!"))
-            }
-        })
-
-        // row1
-        main.addView(createRow().apply {
-            listOf("q","w","e","r","t","y","u","i","o","p").forEach {
-                addView(safeCreateKey(Letter::class.java, it, ""))
-            }
-        })
-
-        // row2
-        main.addView(createRow().apply {
-            listOf("a","s","d","f","g","h","j","k","l").forEach {
-                addView(safeCreateKey(Letter::class.java, it, ""))
+                addView(createSimpleKey(Letter::class.java, it, "!"))
             }
         })
 
         // row3
         main.addView(createRow().apply {
-            if (lang == "en") addView(safeCreateKey(Capslock::class.java, "⇧", "", LARGE_KEY_WEIGHT))
-            listOf("z","x","c","v","b","n","m").forEach {
-                addView(safeCreateKey(Letter::class.java, it, ""))
+            listOf("q","w","e","r","t","y","u","i","o","p").forEach {
+                addView(createSimpleKey(Letter::class.java, it, ""))
             }
-            addView(safeCreateKey(Delete::class.java, "⌫", "", LARGE_KEY_WEIGHT))
         })
 
-        // bottomRow
+        // row4
         main.addView(createRow().apply {
-            addView(safeCreateKey(Symbols::class.java, "123", "", LARGE_KEY_WEIGHT))
-            addView(safeCreateKey(Emoji::class.java, "", ""))
-            addView(safeCreateKey(Letter::class.java, ",", ""))
-            addView(safeCreateKey(Space::class.java, "Space", ""))
-            addView(safeCreateKey(Letter::class.java, ".", ""))
-            addView(safeCreateKey(Clip::class.java, "", ""))
-            addView(safeCreateKey(Enter::class.java, "⏎", ""))
+            listOf("a","s","d","f","g","h","j","k","l").forEach {
+                addView(createSimpleKey(Letter::class.java, it, ""))
+            }
+        })
+
+        // row5
+        main.addView(createRow().apply {
+            if (lang == "en") addView(createSimpleKey(Capslock::class.java, "⇧", "", 1.5f))
+            listOf("z","x","c","v","b","n","m").forEach {
+                addView(createSimpleKey(Letter::class.java, it, ""))
+            }
+            addView(createSimpleKey(Delete::class.java, "⌫", "", 1.5f))
+        })
+
+        // row6 - bottomRow
+        main.addView(createRow().apply {
+            addView(createSimpleKey(Symbols::class.java, "123", "", 1.5f))
+            addView(createSimpleKey(Emoji::class.java, "", ""))
+            addView(createSimpleKey(Letter::class.java, ",", ""))
+            addView(createSimpleKey(Space::class.java, "Space", "", 3.0f))
+            addView(createSimpleKey(Letter::class.java, ".", ""))
+            addView(createSimpleKey(Clip::class.java, "", ""))
+            addView(createSimpleKey(Enter::class.java, "⏎", ""))
         })
 
         return main
     }
 
-    // ✅ صف الأسهم والتبديل
-    private fun createNavRow(json: JSONObject): LinearLayout {
-        val row = createRow(height = ROW_HEIGHT)
-        val keys = listOf(
-            "Left" to Pair(LeftKey::class.java, "←"),
-            "Up" to Pair(UpKey::class.java, "↑"),
-            "Tab" to Pair(Tab::class.java, "⇥"),
-            "Ctrl" to Pair(Ctrl::class.java, "Ctrl"),
-            "Alt" to Pair(Alt::class.java, "Alt"),
-            "Shift" to Pair(Shift::class.java, "Shift"),
-            "Down" to Pair(DownKey::class.java, "↓"),
-            "Right" to Pair(RightKey::class.java, "→")
-        )
-
-        keys.forEach { (name, pair) ->
-            val clazz = pair.first
-            val text = pair.second
-            try {
-                val hint = json.optJSONObject(name)?.optString("hint", "") ?: ""
-                row.addView(safeCreateKey(clazz, text, hint))
-            } catch (ex: Exception) {
-                Log.e(TAG, "Failed to create nav key $name: ${ex.message}", ex)
-                row.addView(safeCreateKey(Letter::class.java, text, ""))
-            }
-        }
-        return row
-    }
-
-    private fun createSimpleRow(json: JSONObject): LinearLayout {
-        val row = createRow()
-        val keys = json.keys().asSequence().toList()
-        keys.forEach { k ->
-            try {
-                val hint = json.optString(k, "")
-                row.addView(safeCreateKey(Letter::class.java, k, hint))
-            } catch (ex: Exception) {
-                Log.e(TAG, "Failed to create simple key $k: ${ex.message}", ex)
-            }
-        }
-        return row
-    }
-
-    private fun createLetterRow(json: JSONObject,lang:String = "en", is3row: Boolean = false): LinearLayout {
-        val row = createRow()
-        val keys = json.keys().asSequence().toList()
-
-        if (lang == "en" && is3row) row.addView(safeCreateKey(Capslock::class.java, "⇧", "", LARGE_KEY_WEIGHT))
-
-        keys.forEach { k ->
-            try {
-                val popup = json.optString(k, "")
-                row.addView(safeCreateKey(Letter::class.java, k, popup))
-            } catch (ex: Exception) {
-                Log.e(TAG, "Failed to create letter key $k: ${ex.message}", ex)
-            }
-        }
-
-        if(is3row)row.addView(safeCreateKey(Delete::class.java, "⌫", "", LARGE_KEY_WEIGHT))
-        return row
-    }
-
-    private fun createBottomRow(json: JSONObject): LinearLayout {
-        val row = createRow()
-        try {
-            row.addView(safeCreateKey(Symbols::class.java, json.optString("symbols", "123"), "", LARGE_KEY_WEIGHT))
-            row.addView(safeCreateKey(Emoji::class.java, "", ""))
-            row.addView(safeCreateKey(Letter::class.java, json.optString("comma", ","), ""))
-            row.addView(safeCreateKey(Space::class.java, "Space", ""))
-            row.addView(safeCreateKey(Letter::class.java, json.optString("dot", "."), ""))
-            row.addView(safeCreateKey(Clip::class.java, "", ""))
-            row.addView(safeCreateKey(Enter::class.java, json.optString("enter", "⏎"), ""))
-        } catch (ex: Exception) {
-            Log.e(TAG, "Failed to create bottom row: ${ex.message}", ex)
-        }
-        return row
-    }
-
-    private fun <T : Key> safeCreateKey(
-        keyClass: Class<T>,
-        text: String,
-        popupKeys: String,
-        weight: Float = DEFAULT_WEIGHT
-    ): Key {
-        return try {
-            createKey(keyClass, text, popupKeys, weight)
-        } catch (ex: Exception) {
-            Log.e(TAG, "Reflection/createKey failed for $text with ${keyClass.simpleName}: ${ex.message}", ex)
-            createKey(Letter::class.java, text, popupKeys, weight)
-        }
-    }
-
-    private fun <T : Key> createKey(
+    // إنشاء مفتاح بسيط (للـ fallback)
+    private fun <T : Key> createSimpleKey(
         keyClass: Class<T>,
         text: String,
         popupKeys: String,
@@ -255,6 +225,53 @@ class KeyboardLayoutBuilder(private val context: Context) {
             this.hint = popupKeys
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, weight)
         }
+    }
+
+    // إنشاء مفتاح متقدم مع معالجة الخصائص الإضافية
+    private fun <T : Key> createKey(
+        keyClass: Class<T>,
+        text: String,
+        popupKeys: String,
+        weight: Float = DEFAULT_WEIGHT,
+        keyObj: JSONObject? = null
+    ): T {
+        val key = keyClass.getConstructor(Context::class.java).newInstance(context).apply {
+            this.text = text
+            this.hint = popupKeys
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, weight)
+        }
+        
+        // إضافة الخصائص الخاصة بناءً على النوع
+        keyObj?.let { json ->
+            try {
+                // للمفاتيح من نوع specialKey - إضافة keyCode
+                if (json.optString("type") == "specialKey" && json.has("keyCode")) {
+                    val keyCode = json.getInt("keyCode")
+                    // يمكن تخزين keyCode في الـ tag أو خاصية مخصصة
+                    key.tag = keyCode
+                }
+                
+                // للمفاتيح من نوع normal - إضافة click و longPress
+                if (json.optString("type") == "normal") {
+                    val click = json.optString("click", "")
+                    val longPress = json.optString("longPress", "")
+                    // يمكن تخزين هذه القيم أو استخدامها مباشرة
+                    // على سبيل المثال في الـ tag كـ Map
+                    key.tag = mapOf("click" to click, "longPress" to longPress)
+                }
+                
+                // للمفاتيح من نوع loopKey - إضافة click
+                if (json.optString("type") == "loopKey") {
+                    val click = json.optString("click", "")
+                    key.tag = mapOf("click" to click)
+                }
+                
+            } catch (ex: Exception) {
+                Log.e(TAG, "Failed to set additional properties for key: ${ex.message}", ex)
+            }
+        }
+        
+        return key
     }
 
     private fun createMainLayout() = LinearLayout(context).apply {

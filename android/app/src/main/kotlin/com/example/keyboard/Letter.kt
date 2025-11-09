@@ -33,7 +33,7 @@ constructor(
         super.actionUp(e)
         if (isPopupVisible && autoHidePopup) {
             if (popupKeys.isNotEmpty() && selectedIndex in popupKeys.indices) {
-                FlutterIME.ime.sendKeyPress(popupKeys[selectedIndex].toString())
+                popupBtns[selectedIndex].performClick() //FlutterIME.ime.sendKeyPress(popupKeys[selectedIndex].toString())
                 onKeyPress()
             }
             popupContainer.visibility = View.GONE
@@ -94,12 +94,14 @@ constructor(
         FlutterIME.ime.rootView.getLocationOnScreen(rootViewLoc)
         popupWidth = (btnWidth * popupKeys.size).toFloat()
         val y = btnLoc[1] - rootViewLoc[1] - dpToPx(48f)
-        val x = if (btnLoc[0] + popupWidth + dpToPx(3f) < screenWidth) btnLoc[0].toFloat()
+        val isReversed = btnLoc[0] + popupWidth + dpToPx(3f) < screenWidth
+        val x = if (isReversed) btnLoc[0].toFloat()
             else btnLoc[0] - popupWidth + btnWidth
         popupContainer.x = x
         popupContainer.y = y.toFloat()
         popupBtns.clear()
-        popupKeys.forEach { altChar ->
+        
+        ( if(! isReversed) popupKeys.reversed() else popupKeys).forEach { altChar ->
             val altBtn = Button(context).apply {
                 text = altChar.toString().lowercase()
                 setPadding(0, 5, 0, 5)
@@ -160,6 +162,7 @@ constructor(
     var isPopupVisible = false
     var selectedIndex = 0
     var autoHidePopup = true
+    
     lateinit var popupContainer: LinearLayout
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()

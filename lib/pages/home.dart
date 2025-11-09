@@ -1,178 +1,200 @@
 
 import 'package:flutter/material.dart';
 import '../db/db_helper.dart';
-import './editRow.dart';
+import './layoutEditor.dart';
+import './addLangDialog.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
-  String _selectedLang = 'en';
-  bool _isLoading = true;
+  List<String> languages = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _initializeDatabase();
+    _loadLanguages();
   }
 
-  Future<void> _initializeDatabase() async {
-    await _dbHelper.insertDefaultLayouts();
+  Future<void> _loadLanguages() async {
+    setState(() => isLoading = true);
+    
+    // إدراج التخطيطات الافتراضية
+    await DatabaseHelper.instance.insertDefaultLayouts();
+    
+    final langs = await DatabaseHelper.instance.getAllLanguages();
     setState(() {
-      _isLoading = false;
+      languages = langs;
+      isLoading = false;
     });
   }
 
-  final List<RowInfo> _rows = [
-    RowInfo(
-      key: 'navRow',
-      title: 'صف التنقل (Navigation Row)',
-      icon: Icons.navigation,
-      color: Colors.blue,
-      description: 'مفاتيح الأسهم وTab وCtrl وAlt',
-    ),
-    RowInfo(
-      key: 'numRow',
-      title: 'صف الأرقام (Number Row)',
-      icon: Icons.numbers,
-      color: Colors.green,
-      description: 'الأرقام من 0 إلى 9',
-    ),
-    RowInfo(
-      key: 'row1',
-      title: 'الصف الأول (Row 1)',
-      icon: Icons.keyboard,
-      color: Colors.orange,
-      description: 'Q W E R T Y U I O P',
-    ),
-    RowInfo(
-      key: 'row2',
-      title: 'الصف الثاني (Row 2)',
-      icon: Icons.keyboard_alt,
-      color: Colors.purple,
-      description: 'A S D F G H J K L',
-    ),
-    RowInfo(
-      key: 'row3',
-      title: 'الصف الثالث (Row 3)',
-      icon: Icons.keyboard_outlined,
-      color: Colors.teal,
-      description: 'Z X C V B N M',
-    ),
-    RowInfo(
-      key: 'bottomRow',
-      title: 'الصف السفلي (Bottom Row)',
-      icon: Icons.space_bar,
-      color: Colors.red,
-      description: 'مفتاح المسافة والنقطة والفاصلة',
-    ),
-  ];
+  Future<void> _addLanguage() async {
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => const AddLanguageDialog(),
+    );
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+    if (result != null) {
+      final lang = result['lang']!;
+      final name = result['name']!;
+      
+      // إنشاء تخطيط جديد بناءً على الإنجليزية
+      final layout = await DatabaseHelper.instance.getOrCreateLayout(lang);
+      await DatabaseHelper.instance.insertOrUpdateLayout(lang, layout);
+      
+      _loadLanguages();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تم إضافة اللغة: $name')),
+        );
+      }
     }
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('محرر تخطيطات لوحة المفاتيح'),
+  Future<void> _deleteLanguage(String lang) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد الحذف'),
+        content: Text('هل أنت متأكد من حذف تخطيط "$lang"؟'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: DropdownButton<String>(
-              value: _selectedLang,
-              dropdownColor: Colors.white,
-              underline: Container(),
-              items: const [
-                DropdownMenuItem(value: 'en', child: Text('English 🇺🇸')),
-                DropdownMenuItem(value: 'ar', child: Text('العربية 🇸🇦')),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedLang = value;
-                  });
-                }
-              },
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('حذف'),
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade50,
-              Colors.white,
-            ],
-          ),
+    );
+
+    if (confirm == true) {
+      await DatabaseHelper.instance.deleteLayout(lang);
+      _loadLanguages();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تم حذف تخطيط "$lang"')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('محرر تخطيطات لوحة المفاتيح'),
+          centerTitle: true,
+          elevation: 2,
         ),
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: _rows.length,
-          itemBuilder: (context, index) {
-            final row = _rows[index];
-            return _buildRowCard(row);
-          },
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : languages.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.keyboard_outlined, 
+                          size: 100, 
+                          color: Colors.grey[400]
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'لا توجد تخطيطات',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton.icon(
+                          onPressed: _addLanguage,
+                          icon: const Icon(Icons.add),
+                          label: const Text('إضافة لغة جديدة'),
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadLanguages,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: languages.length,
+                      itemBuilder: (context, index) {
+                        final lang = languages[index];
+                        return _buildLanguageCard(lang);
+                      },
+                    ),
+                  ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _addLanguage,
+          icon: const Icon(Icons.add),
+          label: const Text('إضافة لغة'),
         ),
       ),
     );
   }
 
-  Widget _buildRowCard(RowInfo row) {
+  Widget _buildLanguageCard(String lang) {
+    final languageNames = {
+      'ar': 'العربية',
+      'en': 'English',
+      'fr': 'Français',
+      'es': 'Español',
+      'de': 'Deutsch',
+    };
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EditRowScreen(
-                rowKey: row.key,
-                rowTitle: row.title,
-                lang: _selectedLang,
-              ),
+              builder: (context) => LayoutEditorScreen(language: lang),
             ),
           );
+          
+          if (result == true) {
+            _loadLanguages();
+          }
         },
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                row.color.withOpacity(0.1),
-                row.color.withOpacity(0.05),
-              ],
-            ),
-          ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
-                  color: row.color,
+                  color: _getLanguageColor(lang),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  row.icon,
-                  color: Colors.white,
-                  size: 32,
+                child: Center(
+                  child: Text(
+                    lang.toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -181,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      row.title,
+                      languageNames[lang] ?? lang.toUpperCase(),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -189,19 +211,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      row.description,
+                      'رمز اللغة: $lang',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade600,
+                        color: Colors.grey[600],
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: row.color,
-                size: 20,
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.blue),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LayoutEditorScreen(language: lang),
+                    ),
+                  );
+                  
+                  if (result == true) {
+                    _loadLanguages();
+                  }
+                },
+                tooltip: 'تعديل',
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _deleteLanguage(lang),
+                tooltip: 'حذف',
               ),
             ],
           ),
@@ -209,20 +247,15 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
-class RowInfo {
-  final String key;
-  final String title;
-  final IconData icon;
-  final Color color;
-  final String description;
-
-  RowInfo({
-    required this.key,
-    required this.title,
-    required this.icon,
-    required this.color,
-    required this.description,
-  });
+  Color _getLanguageColor(String lang) {
+    final colors = {
+      'ar': Colors.green,
+      'en': Colors.blue,
+      'fr': Colors.purple,
+      'es': Colors.orange,
+      'de': Colors.red,
+    };
+    return colors[lang] ?? Colors.teal;
+  }
 }
