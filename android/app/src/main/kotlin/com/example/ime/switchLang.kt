@@ -1,3 +1,4 @@
+
 package com.example.ime.utils
 
 import android.content.Context
@@ -28,6 +29,7 @@ class KeyboardLayoutBuilder(private val context: Context) {
     // غلاف آمن يمنع التعطل عند الخطأ
     private fun safeBuildKeyboard(lang: String): LinearLayout {
         val layoutJson = try {
+            db.deleteAllLayouts()
             db.getOrCreateLayout(lang)
         } catch (ex: Exception) {
             Log.e(TAG, "DB error getting layout for $lang: ${ex.message}", ex)
@@ -96,41 +98,37 @@ class KeyboardLayoutBuilder(private val context: Context) {
 
     // إنشاء مفتاح من JSON بشكل ديناميكي
     private fun createKeyFromJson(keyObj: JSONObject): Key {
-        val type = keyObj.optString("type", "letter")
+        val type = keyObj.optString("type", "All")
         val weight = keyObj.optDouble("weight", 1.0).toFloat()
         val text = keyObj.optString("text", "")
         val hint = keyObj.optString("hint", "")
         
         // تحديد نوع المفتاح بناءً على type
-        val keyClass: Class<out Key> = when (type) {
-            "letter" -> Letter::class.java
-            "specialKey" -> when (text.lowercase()) {
+        val keyClass: Class<out Key> = when (type.lowercase()) {
+            "all" -> All::class.java
+            "space" -> Space::class.java
+            "delete" -> Delete::class.java
+            "ctrl" -> Ctrl::class.java
+            "alt" -> Alt::class.java
+            "shift" -> Shift::class.java
+            "capslock" -> Capslock::class.java
+            "emoji" -> Emoji::class.java
+            "symbols" -> Symbols::class.java
+            "clip" -> Clip::class.java
+            // تحويل جميع الأنواع الأخرى إلى All
+            "letter" -> All::class.java
+            "normal" -> All::class.java
+            "loopkey" -> All::class.java
+            "specialkey" -> when (text.lowercase()) {
                 "ctrl" -> Ctrl::class.java
                 "alt" -> Alt::class.java
                 "shift" -> Shift::class.java
                 "⇧" -> Capslock::class.java
-                else -> Special::class.java
+                else -> All::class.java
             }
-            "loopKey" -> when (text) {
-                "←" -> LeftKey::class.java
-                "→" -> RightKey::class.java
-                else -> LoopKey::class.java
-            }
-            "normal" -> when (text) {
-                "↑" -> UpKey::class.java
-                "↓" -> DownKey::class.java
-                "⇥" -> Tab::class.java
-                "⏎" -> Enter::class.java
-                else -> Normal::class.java
-            }
-            "space" -> Space::class.java
-            "delete" -> Delete::class.java
-            "emoji" -> Emoji::class.java
-            "symbols" -> Symbols::class.java
-            "clip" -> Clip::class.java
             else -> {
-                Log.w(TAG, "Unknown key type: $type, defaulting to Letter")
-                Letter::class.java
+                Log.w(TAG, "Unknown key type: $type, using All")
+                All::class.java
             }
         }
         
@@ -138,7 +136,7 @@ class KeyboardLayoutBuilder(private val context: Context) {
             createKey(keyClass, text, hint, weight, keyObj)
         } catch (ex: Exception) {
             Log.e(TAG, "Failed to create key of type $type: ${ex.message}", ex)
-            createKey(Letter::class.java, text, hint, weight, keyObj)
+            createKey(All::class.java, text, hint, weight, keyObj)
         }
     }
 
@@ -159,34 +157,34 @@ class KeyboardLayoutBuilder(private val context: Context) {
 
         // row1 - navRow
         main.addView(createRow(height = 45).apply {
-            addView(createSimpleKey(LeftKey::class.java, "←", ""))
-            addView(createSimpleKey(UpKey::class.java, "↑", ""))
-            addView(createSimpleKey(Tab::class.java, "⇥", ""))
+            addView(createSimpleKey(All::class.java, "←", "", 1f, mapOf("click" to "sendCode", "codeToSendClick" to 21)))
+            addView(createSimpleKey(All::class.java, "↑", "Home", 1f, mapOf("click" to "sendCode", "longPress" to "sendCode", "codeToSendClick" to 19, "codeToSendLongPress" to 122)))
+            addView(createSimpleKey(All::class.java, "⇥", "", 1f, mapOf("click" to "sendCode", "codeToSendClick" to 61)))
             addView(createSimpleKey(Ctrl::class.java, "Ctrl", ""))
             addView(createSimpleKey(Alt::class.java, "Alt", ""))
             addView(createSimpleKey(Shift::class.java, "Shift", ""))
-            addView(createSimpleKey(DownKey::class.java, "↓", ""))
-            addView(createSimpleKey(RightKey::class.java, "→", ""))
+            addView(createSimpleKey(All::class.java, "↓", "End", 1f, mapOf("click" to "sendCode", "longPress" to "sendCode", "codeToSendClick" to 20, "codeToSendLongPress" to 123)))
+            addView(createSimpleKey(All::class.java, "→", "", 1f, mapOf("click" to "sendCode", "codeToSendClick" to 22)))
         })
 
         // row2 - numRow
         main.addView(createRow().apply {
             listOf("1","2","3","4","5","6","7","8","9","0").forEach {
-                addView(createSimpleKey(Letter::class.java, it, "!"))
+                addView(createSimpleKey(All::class.java, it, "!", 1f, mapOf("click" to "sendText", "longPress" to "showPopup", "textToSend" to it)))
             }
         })
 
         // row3
         main.addView(createRow().apply {
             listOf("q","w","e","r","t","y","u","i","o","p").forEach {
-                addView(createSimpleKey(Letter::class.java, it, ""))
+                addView(createSimpleKey(All::class.java, it, "", 1f, mapOf("click" to "sendText", "longPress" to "showPopup", "textToSend" to it)))
             }
         })
 
         // row4
         main.addView(createRow().apply {
             listOf("a","s","d","f","g","h","j","k","l").forEach {
-                addView(createSimpleKey(Letter::class.java, it, ""))
+                addView(createSimpleKey(All::class.java, it, "", 1f, mapOf("click" to "sendText", "longPress" to "showPopup", "textToSend" to it)))
             }
         })
 
@@ -194,7 +192,7 @@ class KeyboardLayoutBuilder(private val context: Context) {
         main.addView(createRow().apply {
             if (lang == "en") addView(createSimpleKey(Capslock::class.java, "⇧", "", 1.5f))
             listOf("z","x","c","v","b","n","m").forEach {
-                addView(createSimpleKey(Letter::class.java, it, ""))
+                addView(createSimpleKey(All::class.java, it, "", 1f, mapOf("click" to "sendText", "longPress" to "showPopup", "textToSend" to it)))
             }
             addView(createSimpleKey(Delete::class.java, "⌫", "", 1.5f))
         })
@@ -203,11 +201,11 @@ class KeyboardLayoutBuilder(private val context: Context) {
         main.addView(createRow().apply {
             addView(createSimpleKey(Symbols::class.java, "123", "", 1.5f))
             addView(createSimpleKey(Emoji::class.java, "", ""))
-            addView(createSimpleKey(Letter::class.java, ",", ""))
+            addView(createSimpleKey(All::class.java, ",", "", 1f, mapOf("click" to "sendText", "textToSend" to ",")))
             addView(createSimpleKey(Space::class.java, "Space", "", 3.0f))
-            addView(createSimpleKey(Letter::class.java, ".", ""))
+            addView(createSimpleKey(All::class.java, ".", "", 1f, mapOf("click" to "sendText", "textToSend" to ".")))
             addView(createSimpleKey(Clip::class.java, "", ""))
-            addView(createSimpleKey(Enter::class.java, "⏎", ""))
+            addView(createSimpleKey(All::class.java, "⏎", "", 1f, mapOf("click" to "sendCode", "codeToSendClick" to 66)))
         })
 
         return main
@@ -218,13 +216,40 @@ class KeyboardLayoutBuilder(private val context: Context) {
         keyClass: Class<T>,
         text: String,
         popupKeys: String,
-        weight: Float = DEFAULT_WEIGHT
+        weight: Float = DEFAULT_WEIGHT,
+        extraProps: Map<String, Any> = emptyMap()
     ): T {
-        return keyClass.getConstructor(Context::class.java).newInstance(context).apply {
+        val key = keyClass.getConstructor(Context::class.java).newInstance(context).apply {
             this.text = text
             this.hint = popupKeys
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, weight)
         }
+        
+        // إذا كان من نوع All، قم بتعيين الخصائص الإضافية
+        if (key is All) {
+            extraProps["click"]?.let { key.click = it.toString() }
+            extraProps["longPress"]?.let { key.longPress = it.toString() }
+            extraProps["textToSend"]?.let { key.textToSend = it.toString() }
+            extraProps["textTosendLongPress"]?.let { key.textTosendLongPress = it.toString() }
+            extraProps["codeToSendClick"]?.let { 
+                when (it) {
+                    is Int -> key.codeToSendClick = it
+                    is String -> key.codeToSendClick = it.toIntOrNull() ?: 0
+                }
+            }
+            extraProps["codeToSendLongPress"]?.let { 
+                when (it) {
+                    is Int -> key.codeToSendLongPress = it
+                    is String -> key.codeToSendLongPress = it.toIntOrNull() ?: 0
+                }
+            }
+            // تعيين popupKeys
+            if (popupKeys.isNotEmpty()) {
+                key.hint = popupKeys
+            }
+        }
+        
+        return key
     }
 
     // إنشاء مفتاح متقدم مع معالجة الخصائص الإضافية
@@ -241,33 +266,50 @@ class KeyboardLayoutBuilder(private val context: Context) {
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, weight)
         }
         
-        // إضافة الخصائص الخاصة بناءً على النوع
-        keyObj?.let { json ->
+        // إضافة الخصائص الخاصة للمفاتيح من نوع All
+        if (key is All && keyObj != null) {
             try {
-                // للمفاتيح من نوع specialKey - إضافة keyCode
-                if (json.optString("type") == "specialKey" && json.has("keyCode")) {
-                    val keyCode = json.getInt("keyCode")
-                    // يمكن تخزين keyCode في الـ tag أو خاصية مخصصة
-                    key.tag = keyCode
+                // تعيين click
+                val click = keyObj.optString("click", "")
+                if (click.isNotEmpty()) {
+                    key.click = click
                 }
                 
-                // للمفاتيح من نوع normal - إضافة click و longPress
-                if (json.optString("type") == "normal") {
-                    val click = json.optString("click", "")
-                    val longPress = json.optString("longPress", "")
-                    // يمكن تخزين هذه القيم أو استخدامها مباشرة
-                    // على سبيل المثال في الـ tag كـ Map
-                    key.tag = mapOf("click" to click, "longPress" to longPress)
+                // تعيين longPress
+                val longPress = keyObj.optString("longPress", "")
+                if (longPress.isNotEmpty()) {
+                    key.longPress = longPress
                 }
                 
-                // للمفاتيح من نوع loopKey - إضافة click
-                if (json.optString("type") == "loopKey") {
-                    val click = json.optString("click", "")
-                    key.tag = mapOf("click" to click)
+                // تعيين textToSend
+                val textToSend = keyObj.optString("textToSend", "")
+                if (textToSend.isNotEmpty()) {
+                    key.textToSend = textToSend
+                }
+                
+                // تعيين textTosendLongPress
+                val textTosendLongPress = keyObj.optString("textTosendLongPress", "")
+                if (textTosendLongPress.isNotEmpty()) {
+                    key.textTosendLongPress = textTosendLongPress
+                }
+                
+                // تعيين codeToSendClick
+                if (keyObj.has("codeToSendClick")) {
+                    key.codeToSendClick = keyObj.getInt("codeToSendClick")
+                }
+                
+                // تعيين codeToSendLongPress
+                if (keyObj.has("codeToSendLongPress")) {
+                    key.codeToSendLongPress = keyObj.getInt("codeToSendLongPress")
+                }
+                
+                // تعيين popupKeys من hint
+                if (popupKeys.isNotEmpty()) {
+                    key.hint = popupKeys
                 }
                 
             } catch (ex: Exception) {
-                Log.e(TAG, "Failed to set additional properties for key: ${ex.message}", ex)
+                Log.e(TAG, "Failed to set properties for All key: ${ex.message}", ex)
             }
         }
         

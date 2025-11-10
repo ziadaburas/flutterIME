@@ -76,7 +76,7 @@ constructor(
             }
             "sendCode"->{
                  onLongPressFn= {
-                    FlutterIME.ime.sendKeyPress(codeToSendClick) 
+                    FlutterIME.ime.sendKeyPress(codeToSendLongPress) 
                 }
             }
             "openClipboard"->{
