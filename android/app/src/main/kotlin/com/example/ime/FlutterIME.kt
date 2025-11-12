@@ -364,8 +364,11 @@ class FlutterIME : InputMethodService() {
     
     fun sendKeyPress(keyCode : String) {
         val ic = currentInputConnection
-        ic.commitText(keyCode, 1)
+        
+        var keyCode1 = if ((Key.capslock.value ?: 1) != 0) keyCode.uppercase() else keyCode
+        ic.commitText(keyCode1, 1)
         if((keyCode in backTexts)){
+            
             val ext = ic.getExtractedText(ExtractedTextRequest(), 1)
             var mid = keyCode.length/2
             if(ext!=null){
