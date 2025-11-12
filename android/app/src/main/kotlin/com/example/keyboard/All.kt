@@ -80,6 +80,7 @@ constructor(
                 }
             }
             "openClipboard"->{
+                backgroundImg = R.drawable.ic_clipboard
                 onLongPressFn = {
                     val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.ClipboardView>(R.id.clipboard)
                     clip.refresh()
@@ -87,6 +88,7 @@ constructor(
                 }
             }
             "openEmoji"->{
+                backgroundImg = R.drawable.emoji_language
                 onLongPressFn = {
                     val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.EmojiView>(R.id.emoji)
                     clip.refresh()

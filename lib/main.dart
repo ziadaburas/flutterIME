@@ -1,46 +1,50 @@
-
 import 'package:flutter/material.dart';
-import './pages/home.dart';
-import './db/db_helper.dart';
+import 'screens/layouts_list_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // تهيئة قاعدة البيانات
-  await DatabaseHelper.instance.database;
-  
-  runApp(const MyApp());
+void main() {
+  runApp(const KeyboardLayoutManagerApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class KeyboardLayoutManagerApp extends StatelessWidget {
+  const KeyboardLayoutManagerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'محرر تخطيطات لوحة المفاتيح',
+      title: 'مدير تخطيطات لوحة المفاتيح',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        fontFamily: 'Cairo',
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
+        fontFamily: 'Arial',
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.blue.shade800,
+          foregroundColor: Colors.white,
+          elevation: 4,
+        ),
+        cardTheme: CardTheme(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.blue.shade800, width: 2),
+          ),
         ),
       ),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Cairo',
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ),
-      ),
-      themeMode: ThemeMode.system,
-      home: const HomeScreen(),
+      home: const LayoutsListScreen(),
     );
   }
 }
