@@ -1,8 +1,8 @@
 import 'keyboard_key.dart';
 
 class KeyboardRow {
-  final double height;
-  final List<KeyboardKey> keys;
+  double height;
+  List<KeyboardKey> keys;
 
   KeyboardRow({
     required this.height,
@@ -12,9 +12,9 @@ class KeyboardRow {
   factory KeyboardRow.fromJson(Map<String, dynamic> json) {
     return KeyboardRow(
       height: (json['height'] ?? 55.0).toDouble(),
-      keys: (json['keys'] as List)
-          .map((keyJson) => KeyboardKey.fromJson(keyJson))
-          .toList(),
+      keys: (json['keys'] as List?)
+          ?.map((keyJson) => KeyboardKey.fromJson(keyJson))
+          .toList() ?? [],
     );
   }
 
@@ -25,13 +25,10 @@ class KeyboardRow {
     };
   }
 
-  KeyboardRow copyWith({
-    double? height,
-    List<KeyboardKey>? keys,
-  }) {
+  KeyboardRow copy() {
     return KeyboardRow(
-      height: height ?? this.height,
-      keys: keys ?? this.keys,
+      height: height,
+      keys: keys.map((key) => key.copy()).toList(),
     );
   }
 }

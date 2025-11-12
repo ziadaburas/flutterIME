@@ -1,13 +1,13 @@
 class KeyboardKey {
-  final String type;
-  final double weight;
-  final String text;
-  final String hint;
-  final String? click;
-  final String? longPress;
-  final String? textToSend;
-  final int? codeToSendClick;
-  final int? codeToSendLongPress;
+  String type;
+  double weight;
+  String text;
+  String hint;
+  String? click;
+  String? longPress;
+  String? textToSend;
+  int? codeToSendClick;
+  int? codeToSendLongPress;
 
   KeyboardKey({
     required this.type,
@@ -36,7 +36,7 @@ class KeyboardKey {
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {
+    final Map<String, dynamic> json = {
       'type': type,
       'weight': weight,
       'text': text,
@@ -52,27 +52,17 @@ class KeyboardKey {
     return json;
   }
 
-  KeyboardKey copyWith({
-    String? type,
-    double? weight,
-    String? text,
-    String? hint,
-    String? click,
-    String? longPress,
-    String? textToSend,
-    int? codeToSendClick,
-    int? codeToSendLongPress,
-  }) {
+  KeyboardKey copy() {
     return KeyboardKey(
-      type: type ?? this.type,
-      weight: weight ?? this.weight,
-      text: text ?? this.text,
-      hint: hint ?? this.hint,
-      click: click ?? this.click,
-      longPress: longPress ?? this.longPress,
-      textToSend: textToSend ?? this.textToSend,
-      codeToSendClick: codeToSendClick ?? this.codeToSendClick,
-      codeToSendLongPress: codeToSendLongPress ?? this.codeToSendLongPress,
+      type: type,
+      weight: weight,
+      text: text,
+      hint: hint,
+      click: click,
+      longPress: longPress,
+      textToSend: textToSend,
+      codeToSendClick: codeToSendClick,
+      codeToSendLongPress: codeToSendLongPress,
     );
   }
 }

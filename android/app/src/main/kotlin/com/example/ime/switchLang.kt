@@ -29,7 +29,7 @@ class KeyboardLayoutBuilder(private val context: Context) {
     // غلاف آمن يمنع التعطل عند الخطأ
     private fun safeBuildKeyboard(lang: String): LinearLayout {
         val layoutJson = try {
-            db.deleteAllLayouts()
+            //db.deleteAllLayouts()
             db.getOrCreateLayout(lang)
         } catch (ex: Exception) {
             Log.e(TAG, "DB error getting layout for $lang: ${ex.message}", ex)

@@ -1,9 +1,10 @@
+
 import 'dart:convert';
 import 'keyboard_row.dart';
 
 class KeyboardLayout {
-  final String lang;
-  final Map<String, KeyboardRow> rows;
+  String lang;
+  Map<String, KeyboardRow> rows;
 
   KeyboardLayout({
     required this.lang,
@@ -11,13 +12,13 @@ class KeyboardLayout {
   });
 
   factory KeyboardLayout.fromJson(String lang, String jsonString) {
-    final Map<String, dynamic> json = jsonDecode(jsonString);
-    Map<String, KeyboardRow> rows = {};
+    final json = jsonDecode(jsonString);
+    final Map<String, KeyboardRow> rows = {};
     
     json.forEach((key, value) {
       rows[key] = KeyboardRow.fromJson(value);
     });
-
+    
     return KeyboardLayout(
       lang: lang,
       rows: rows,
@@ -25,36 +26,27 @@ class KeyboardLayout {
   }
 
   String toJsonString() {
-    Map<String, dynamic> json = {};
+    final Map<String, dynamic> json = {};
     rows.forEach((key, row) {
       json[key] = row.toJson();
     });
     return jsonEncode(json);
   }
 
-  KeyboardLayout copyWith({
-    String? lang,
-    Map<String, KeyboardRow>? rows,
-  }) {
+  KeyboardLayout copy() {
+    final Map<String, KeyboardRow> copiedRows = {};
+    rows.forEach((key, row) {
+      copiedRows[key] = row.copy();
+    });
     return KeyboardLayout(
-      lang: lang ?? this.lang,
-      rows: rows ?? this.rows,
+      lang: lang,
+      rows: copiedRows,
     );
   }
 
-  // إضافة صف جديد
-  void addRow(String rowKey, KeyboardRow row) {
-    rows[rowKey] = row;
-  }
-
-  // حذف صف
-  void removeRow(String rowKey) {
-    rows.remove(rowKey);
-  }
-
-  // الحصول على قائمة مرتبة من الصفوف
-  List<MapEntry<String, KeyboardRow>> getSortedRows() {
-    var sortedKeys = rows.keys.toList()..sort();
-    return sortedKeys.map((key) => MapEntry(key, rows[key]!)).toList();
+  List<String> get rowKeys {
+    final keys = rows.keys.toList();
+    keys.sort();
+    return keys;
   }
 }

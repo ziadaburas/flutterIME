@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import '../models/keyboard_key.dart';
 
 class KeyEditorScreen extends StatefulWidget {
+  final int keyIndex;
   final KeyboardKey k;
+  final bool isNewKey;
 
   const KeyEditorScreen({
     super.key,
+    required this.keyIndex,
     required this.k,
+    this.isNewKey = false,
   });
 
   @override
@@ -14,56 +18,446 @@ class KeyEditorScreen extends StatefulWidget {
 }
 
 class _KeyEditorScreenState extends State<KeyEditorScreen> {
-  late TextEditingController _typeController;
-  late TextEditingController _weightController;
-  late TextEditingController _textController;
-  late TextEditingController _hintController;
-  late TextEditingController _clickController;
-  late TextEditingController _longPressController;
-  late TextEditingController _textToSendController;
-  late TextEditingController _codeToSendClickController;
-  late TextEditingController _codeToSendLongPressController;
+  late KeyboardKey _key;
+  bool _hasChanges = false;
 
-  final List<String> keyTypes = [
-    'All',
-    'space',
-    'delete',
-    'shift',
-    'capslock',
-    'ctrl',
-    'alt',
-    'symbols',
-    'emoji',
-    'clip',
+  // Controllers للحقول
+  final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _textController = TextEditingController();
+  final TextEditingController _hintController = TextEditingController();
+  final TextEditingController _clickController = TextEditingController();
+  final TextEditingController _longPressController = TextEditingController();
+  final TextEditingController _textToSendController = TextEditingController();
+  final TextEditingController _codeToSendClickController = TextEditingController();
+  final TextEditingController _codeToSendLongPressController = TextEditingController();
+
+  // قوائم الخيارات المحددة مسبقًا
+  final List<String> _keyTypes = [
+    'All', 'delete', 'space', 'shift', 'capslock', 
+    'ctrl', 'alt', 'symbols', 'emoji', 'clip'
   ];
-
-  final List<String> clickActions = [
-    'sendText',
-    'sendCode',
-    'showPopup',
-    'loop',
+  
+  final List<String> _actionTypes = [
+    'sendText', 'sendCode', 'showPopup', 'loop', ''
   ];
 
   @override
   void initState() {
     super.initState();
-    _initControllers();
+    _key = widget.k.copy();
+    _initializeControllers();
   }
 
-  void _initControllers() {
-    _typeController = TextEditingController(text: widget.k.type);
-    _weightController = TextEditingController(text: widget.k.weight.toString());
-    _textController = TextEditingController(text: widget.k.text);
-    _hintController = TextEditingController(text: widget.k.hint);
-    _clickController = TextEditingController(text: widget.k.click ?? '');
-    _longPressController = TextEditingController(text: widget.k.longPress ?? '');
-    _textToSendController = TextEditingController(text: widget.k.textToSend ?? '');
-    _codeToSendClickController = TextEditingController(
-      text: widget.k.codeToSendClick?.toString() ?? '',
+  void _initializeControllers() {
+    _typeController.text = _key.type;
+    _weightController.text = _key.weight.toString();
+    _textController.text = _key.text;
+    _hintController.text = _key.hint;
+    _clickController.text = _key.click ?? '';
+    _longPressController.text = _key.longPress ?? '';
+    _textToSendController.text = _key.textToSend ?? '';
+    _codeToSendClickController.text = _key.codeToSendClick?.toString() ?? '';
+    _codeToSendLongPressController.text = _key.codeToSendLongPress?.toString() ?? '';
+  }
+
+  void _updateKey() {
+    setState(() {
+      _key.type = _typeController.text;
+      _key.weight = double.tryParse(_weightController.text) ?? 1.0;
+      _key.text = _textController.text;
+      _key.hint = _hintController.text;
+      
+      _key.click = _clickController.text.isEmpty ? null : _clickController.text;
+      _key.longPress = _longPressController.text.isEmpty ? null : _longPressController.text;
+      _key.textToSend = _textToSendController.text.isEmpty ? null : _textToSendController.text;
+      
+      final clickCode = int.tryParse(_codeToSendClickController.text);
+      _key.codeToSendClick = clickCode == 0 ? null : clickCode;
+      
+      final longPressCode = int.tryParse(_codeToSendLongPressController.text);
+      _key.codeToSendLongPress = longPressCode == 0 ? null : longPressCode;
+      
+      _hasChanges = true;
+    });
+  }
+
+  Future<void> _resetToBasicKey() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('إعادة تعيين الزر'),
+        content: const Text('هل تريد إعادة تعيين هذا الزر إلى الإعدادات الأساسية؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.orange),
+            child: const Text('إعادة تعيين'),
+          ),
+        ],
+      ),
     );
-    _codeToSendLongPressController = TextEditingController(
-      text: widget.k.codeToSendLongPress?.toString() ?? '',
+
+    if (confirmed == true) {
+      setState(() {
+        _key = KeyboardKey(
+          type: 'All',
+          weight: 1.0,
+          text: 'أ',
+          hint: '',
+          click: 'sendText',
+          longPress: '',
+          textToSend: 'أ',
+        );
+        _initializeControllers();
+        _hasChanges = true;
+      });
+    }
+  }
+
+  Widget _buildDropdownField(
+    String label,
+    TextEditingController controller,
+    List<String> options,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 4),
+        DropdownButtonFormField<String>(
+          value: options.contains(controller.text) ? controller.text : null,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+          items: options.map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value.isEmpty ? 'فارغ' : value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            controller.text = newValue ?? '';
+            _updateKey();
+          },
+        ),
+      ],
     );
+  }
+
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    String? hint,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 4),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            hintText: hint,
+          ),
+          onChanged: (_) => _updateKey(),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        if (_hasChanges || widget.isNewKey) {
+          Navigator.pop(context, _key);
+        } else {
+          Navigator.pop(context);
+        }
+        return false;
+      },
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(widget.isNewKey ? 'إضافة زر جديد' : 'تحرير الزر ${widget.keyIndex + 1}'),
+            backgroundColor: Colors.purple.shade700,
+            foregroundColor: Colors.white,
+            actions: [
+              IconButton(
+                onPressed: _resetToBasicKey,
+                icon: const Icon(Icons.restore),
+                tooltip: 'إعادة تعيين',
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context, _key),
+                icon: const Icon(Icons.save),
+                tooltip: 'حفظ',
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // معاينة الزر
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'معاينة الزر',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        width: 60,
+                        height: _key.type == 'space' ? 40 : 50,
+                        decoration: BoxDecoration(
+                          color: _getKeyTypeColor(_key.type),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            _key.text.isEmpty ? '؟' : _key.text,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (_key.hint.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'التلميح: ${_key.hint}',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                // الحقول الأساسية
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'الإعدادات الأساسية',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        _buildDropdownField('نوع الزر', _typeController, _keyTypes),
+                        const SizedBox(height: 16),
+                        
+                        _buildTextField(
+                          'الوزن (العرض النسبي)',
+                          _weightController,
+                          keyboardType: TextInputType.number,
+                          hint: '1.0',
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        _buildTextField(
+                          'النص المعروض',
+                          _textController,
+                          hint: 'النص الذي يظهر على الزر',
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        _buildTextField(
+                          'التلميح',
+                          _hintController,
+                          hint: 'نص التلميح (اختياري)',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // إعدادات الإجراءات
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'إعدادات الإجراءات',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        _buildDropdownField('إجراء النقر', _clickController, _actionTypes),
+                        const SizedBox(height: 16),
+                        
+                        _buildDropdownField('إجراء الضغط المطول', _longPressController, _actionTypes),
+                        const SizedBox(height: 16),
+                        
+                        _buildTextField(
+                          'النص المرسل',
+                          _textToSendController,
+                          hint: 'النص الذي يتم إرساله عند النقر',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // إعدادات الرموز
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'إعدادات رموز المفاتيح',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'هذه الرموز تُستخدم لإرسال مفاتيح خاصة (مثل Enter = 66, Backspace = 67)',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        _buildTextField(
+                          'رمز النقر',
+                          _codeToSendClickController,
+                          keyboardType: TextInputType.number,
+                          hint: 'رمز المفتاح للنقر (اختياري)',
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        _buildTextField(
+                          'رمز الضغط المطول',
+                          _codeToSendLongPressController,
+                          keyboardType: TextInputType.number,
+                          hint: 'رمز المفتاح للضغط المطول (اختياري)',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // معلومات إضافية
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'معلومات مفيدة:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '• رموز المفاتيح الشائعة: Enter=66, Backspace=67, Space=62\n'
+                        '• أنواع الأزرار: All (عادي), space (مسطرة), delete (حذف)\n'
+                        '• الوزن يحدد العرض النسبي للزر (1.0 = عرض عادي)',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getKeyTypeColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'all':
+        return Colors.blue;
+      case 'delete':
+        return Colors.red;
+      case 'space':
+        return Colors.green;
+      case 'shift':
+      case 'capslock':
+        return Colors.orange;
+      case 'ctrl':
+      case 'alt':
+        return Colors.purple;
+      case 'symbols':
+        return Colors.teal;
+      case 'emoji':
+        return Colors.amber;
+      default:
+        return Colors.grey;
+    }
   }
 
   @override
@@ -78,340 +472,5 @@ class _KeyEditorScreenState extends State<KeyEditorScreen> {
     _codeToSendClickController.dispose();
     _codeToSendLongPressController.dispose();
     super.dispose();
-  }
-
-  KeyboardKey _createUpdatedKey() {
-    return KeyboardKey(
-      type: _typeController.text.trim(),
-      weight: double.tryParse(_weightController.text) ?? 1.0,
-      text: _textController.text,
-      hint: _hintController.text,
-      click: _clickController.text.trim().isEmpty ? null : _clickController.text.trim(),
-      longPress: _longPressController.text.trim().isEmpty ? null : _longPressController.text.trim(),
-      textToSend: _textToSendController.text.trim().isEmpty ? null : _textToSendController.text.trim(),
-      codeToSendClick: _codeToSendClickController.text.trim().isEmpty
-          ? null
-          : int.tryParse(_codeToSendClickController.text.trim()),
-      codeToSendLongPress: _codeToSendLongPressController.text.trim().isEmpty
-          ? null
-          : int.tryParse(_codeToSendLongPressController.text.trim()),
-    );
-  }
-
-  void _resetToDefault() {
-    setState(() {
-      _typeController.text = widget.k.type;
-      _weightController.text = widget.k.weight.toString();
-      _textController.text = widget.k.text;
-      _hintController.text = widget.k.hint;
-      _clickController.text = widget.k.click ?? '';
-      _longPressController.text = widget.k.longPress ?? '';
-      _textToSendController.text = widget.k.textToSend ?? '';
-      _codeToSendClickController.text = widget.k.codeToSendClick?.toString() ?? '';
-      _codeToSendLongPressController.text = widget.k.codeToSendLongPress?.toString() ?? '';
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('تعديل المفتاح'),
-        backgroundColor: Colors.purple.shade800,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.restore),
-            onPressed: _resetToDefault,
-            tooltip: 'استعادة القيم الأصلية',
-          ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () => Navigator.pop(context, _createUpdatedKey()),
-            tooltip: 'حفظ',
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // معاينة المفتاح
-            Card(
-              color: Colors.grey.shade100,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'معاينة المفتاح',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    Center(
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: _getKeyColor(_typeController.text),
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Text(
-                            _textController.text.isNotEmpty
-                                ? _textController.text
-                                : _typeController.text,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // الخصائص الأساسية
-            const Text(
-              'الخصائص الأساسية',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            
-            DropdownButtonFormField<String>(
-              value: keyTypes.contains(_typeController.text) ? _typeController.text : 'All',
-              decoration: const InputDecoration(
-                labelText: 'نوع المفتاح',
-                border: OutlineInputBorder(),
-              ),
-              items: keyTypes.map((type) => DropdownMenuItem(
-                value: type,
-                child: Text(type),
-              )).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _typeController.text = value!;
-                });
-              },
-            ),
-            
-            const SizedBox(height: 16),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _weightController,
-                    decoration: const InputDecoration(
-                      labelText: 'العرض (Weight)',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _textController,
-                    decoration: const InputDecoration(
-                      labelText: 'نص المفتاح',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            TextFormField(
-              controller: _hintController,
-              decoration: const InputDecoration(
-                labelText: 'النص المساعد (Hint)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // إعدادات الإجراءات
-            const Text(
-              'إعدادات الإجراءات',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            
-            DropdownButtonFormField<String>(
-              value: clickActions.contains(_clickController.text) ? _clickController.text : null,
-              decoration: const InputDecoration(
-                labelText: 'إجراء النقر',
-                border: OutlineInputBorder(),
-              ),
-              items: [
-                const DropdownMenuItem<String>(value: null, child: Text('بدون إجراء')),
-                ...clickActions.map((action) => DropdownMenuItem(
-                  value: action,
-                  child: Text(action),
-                )),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _clickController.text = value ?? '';
-                });
-              },
-            ),
-            
-            const SizedBox(height: 16),
-            
-            DropdownButtonFormField<String>(
-              value: clickActions.contains(_longPressController.text) ? _longPressController.text : null,
-              decoration: const InputDecoration(
-                labelText: 'إجراء الضغط المطول',
-                border: OutlineInputBorder(),
-              ),
-              items: [
-                const DropdownMenuItem<String>(value: null, child: Text('بدون إجراء')),
-                ...clickActions.map((action) => DropdownMenuItem(
-                  value: action,
-                  child: Text(action),
-                )),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _longPressController.text = value ?? '';
-                });
-              },
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // إعدادات الإرسال
-            const Text(
-              'إعدادات الإرسال',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            
-            TextFormField(
-              controller: _textToSendController,
-              decoration: const InputDecoration(
-                labelText: 'النص المُرسل',
-                border: OutlineInputBorder(),
-                hintText: 'النص الذي سيُرسل عند النقر',
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _codeToSendClickController,
-                    decoration: const InputDecoration(
-                      labelText: 'كود النقر',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _codeToSendLongPressController,
-                    decoration: const InputDecoration(
-                      labelText: 'كود الضغط المطول',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // أزرار الإجراءات
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _resetToDefault,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'استعادة القيم الأصلية',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context, _createUpdatedKey()),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'حفظ التغييرات',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text(
-                  'إلغاء',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _getKeyColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'space':
-        return Colors.blue.shade100;
-      case 'delete':
-        return Colors.red.shade100;
-      case 'shift':
-      case 'capslock':
-        return Colors.orange.shade100;
-      case 'ctrl':
-      case 'alt':
-        return Colors.purple.shade100;
-      case 'symbols':
-      case 'emoji':
-        return Colors.green.shade100;
-      default:
-        return Colors.grey.shade200;
-    }
   }
 }

@@ -1,468 +1,386 @@
+
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/keyboard_layout.dart';
 import '../models/keyboard_row.dart';
-import '../models/keyboard_key.dart';
-import 'key_editor_screen.dart';
+import '../database/layout_database.dart';
+import 'row_editor_screen.dart';
 
 class LayoutEditorScreen extends StatefulWidget {
-  final String languageCode;
+  final KeyboardLayout layout;
 
-  const LayoutEditorScreen({
-    super.key,
-    required this.languageCode,
-  });
+  const LayoutEditorScreen({super.key, required this.layout});
 
   @override
   State<LayoutEditorScreen> createState() => _LayoutEditorScreenState();
 }
 
 class _LayoutEditorScreenState extends State<LayoutEditorScreen> {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
-  KeyboardLayout? layout;
-  bool isLoading = true;
-  bool hasChanges = false;
+  late KeyboardLayout _layout;
+  bool _hasChanges = false;
 
   @override
   void initState() {
     super.initState();
-    _loadLayout();
-  }
-
-  Future<void> _loadLayout() async {
-    setState(() => isLoading = true);
-    try {
-      final jsonString = await _dbHelper.getOrCreateLayout(widget.languageCode);
-      setState(() {
-        layout = KeyboardLayout.fromJson(widget.languageCode, jsonString);
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() => isLoading = false);
-      _showErrorDialog('خطأ في تحميل التخطيط: $e');
-    }
+    _layout = widget.layout.copy();
   }
 
   Future<void> _saveLayout() async {
-    if (layout == null) return;
-
-    try {
-      await _dbHelper.insertOrUpdate(layout!.lang, layout!.toJsonString());
-      setState(() => hasChanges = false);
+    await LayoutDatabase.saveKeyboardLayout(_layout);
+    setState(() => _hasChanges = false);
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم حفظ التخطيط بنجاح')),
       );
-    } catch (e) {
-      _showErrorDialog('خطأ في حفظ التخطيط: $e');
     }
   }
 
-  Future<void> _resetToDefault() async {
-    bool? confirm = await showDialog<bool>(
+  Future<void> _addNewRow() async {
+    final result = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('استعادة التخطيط الافتراضي'),
-        content: const Text('هل تريد استعادة التخطيط الافتراضي؟ سيتم فقدان التغييرات الحالية.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('إلغاء'),
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          title: const Text('إضافة صف جديد'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'اسم الصف (مثل: row7, row8)',
+              hintText: 'أدخل اسم الصف',
+            ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('استعادة'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  Navigator.pop(context, controller.text.trim());
+                }
+              },
+              child: const Text('إضافة'),
+            ),
+          ],
+        );
+      },
     );
 
-    if (confirm == true) {
-      try {
-        await _dbHelper.deleteLayout(widget.languageCode);
-        _loadLayout();
-        setState(() => hasChanges = false);
-      } catch (e) {
-        _showErrorDialog('خطأ في استعادة التخطيط: $e');
-      }
-    }
-  }
-
-  void _addNewRow() async {
-    final TextEditingController controller = TextEditingController();
-    String? rowKey = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('إضافة صف جديد'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'اسم الصف (مثل: row7)',
-            hintText: 'أدخل اسم الصف',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('إضافة'),
-          ),
-        ],
-      ),
-    );
-
-    if (rowKey != null && rowKey.isNotEmpty && layout != null) {
+    if (result != null && !_layout.rows.containsKey(result)) {
       setState(() {
-        layout!.addRow(rowKey, KeyboardRow(height: 55, keys: []));
-        hasChanges = true;
+        _layout.rows[result] = KeyboardRow(
+          height: 55.0,
+          keys: [],
+        );
+        _hasChanges = true;
       });
     }
   }
 
-  void _deleteRow(String rowKey) async {
-    bool? confirm = await showDialog<bool>(
+  Future<void> _deleteRow(String rowKey) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف الصف'),
+        title: const Text('تأكيد الحذف'),
         content: Text('هل تريد حذف الصف "$rowKey"؟'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          TextButton(
             onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('حذف'),
           ),
         ],
       ),
     );
 
-    if (confirm == true && layout != null) {
+    if (confirmed == true) {
       setState(() {
-        layout!.removeRow(rowKey);
-        hasChanges = true;
+        _layout.rows.remove(rowKey);
+        _hasChanges = true;
       });
     }
   }
 
-  void _editRow(String rowKey, KeyboardRow row) async {
-    final result = await showDialog<KeyboardRow>(
-      context: context,
-      builder: (context) => _RowEditDialog(row: row),
-    );
-
-    if (result != null && layout != null) {
-      setState(() {
-        layout!.addRow(rowKey, result);
-        hasChanges = true;
-      });
-    }
-  }
-
-  void _editKey(String rowKey, int keyIndex, KeyboardKey key) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => KeyEditorScreen(k: key),
-      ),
-    );
-
-    if (result != null && layout != null) {
-      setState(() {
-        final row = layout!.rows[rowKey]!;
-        final newKeys = List<KeyboardKey>.from(row.keys);
-        newKeys[keyIndex] = result;
-        layout!.addRow(rowKey, row.copyWith(keys: newKeys));
-        hasChanges = true;
-      });
-    }
-  }
-
-  void _addKeyToRow(String rowKey) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => KeyEditorScreen(
-          k: KeyboardKey(
-            type: 'All',
-            weight: 1.0,
-            text: '',
-            hint: '',
-          ),
-        ),
-      ),
-    );
-
-    if (result != null && layout != null) {
-      setState(() {
-        final row = layout!.rows[rowKey]!;
-        final newKeys = List<KeyboardKey>.from(row.keys)..add(result);
-        layout!.addRow(rowKey, row.copyWith(keys: newKeys));
-        hasChanges = true;
-      });
-    }
-  }
-
-  void _deleteKey(String rowKey, int keyIndex) async {
-    bool? confirm = await showDialog<bool>(
+  Future<void> _resetToDefault() async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف المفتاح'),
-        content: const Text('هل تريد حذف هذا المفتاح؟'),
+        title: const Text('العودة للتخطيط الافتراضي'),
+        content: const Text('هل تريد استعادة التخطيط الافتراضي؟ سيتم فقدان جميع التغييرات الحالية.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('حذف'),
+            style: TextButton.styleFrom(foregroundColor: Colors.orange),
+            child: const Text('استعادة'),
           ),
         ],
       ),
     );
 
-    if (confirm == true && layout != null) {
-      setState(() {
-        final row = layout!.rows[rowKey]!;
-        final newKeys = List<KeyboardKey>.from(row.keys)..removeAt(keyIndex);
-        layout!.addRow(rowKey, row.copyWith(keys: newKeys));
-        hasChanges = true;
-      });
+    if (confirmed == true) {
+      // حذف التخطيط الحالي وإعادة إنشاء الافتراضي
+      await LayoutDatabase.deleteLayout(_layout.lang);
+      await LayoutDatabase.resetToDefaults();
+      
+      final defaultLayout = await LayoutDatabase.getKeyboardLayout(_layout.lang);
+      if (defaultLayout != null) {
+        setState(() {
+          _layout = defaultLayout.copy();
+          _hasChanges = false;
+        });
+      }
     }
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('خطأ'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('موافق'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _exportLayout() async {
+    try {
+      final jsonString = _layout.toJsonString();
+      final prettyJson = const JsonEncoder.withIndent('  ').convert(jsonDecode(jsonString));
+      
+      await Share.shareXFiles([
+        XFile.fromData(
+          utf8.encode(prettyJson),
+          name: 'layout_${_layout.lang}.json',
+          mimeType: 'application/json',
+        ),
+      ], text: 'تصدير تخطيط ${_layout.lang}');
+      
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في التصدير: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  Future<void> _importLayout() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result != null && result.files.single.bytes != null) {
+        final jsonString = utf8.decode(result.files.single.bytes!);
+        final newLayout = KeyboardLayout.fromJson(_layout.lang, jsonString);
+        
+        setState(() {
+          _layout = newLayout;
+          _hasChanges = true;
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم استيراد التخطيط بنجاح')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في الاستيراد: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('تعديل تخطيط ${widget.languageCode}'),
-        backgroundColor: Colors.green.shade800,
-        foregroundColor: Colors.white,
-        actions: [
-          if (hasChanges)
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _saveLayout,
-              tooltip: 'حفظ',
+    return WillPopScope(
+      onWillPop: () async {
+        if (_hasChanges) {
+          final shouldSave = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('حفظ التغييرات؟'),
+              content: const Text('لديك تغييرات غير محفوظة، هل تريد حفظها قبل المغادرة؟'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('المغادرة بدون حفظ'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('حفظ والمغادرة'),
+                ),
+              ],
             ),
-          IconButton(
-            icon: const Icon(Icons.restore),
-            onPressed: _resetToDefault,
-            tooltip: 'استعادة الافتراضي',
+          );
+          
+          if (shouldSave == true) {
+            await _saveLayout();
+          }
+        }
+        return true;
+      },
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text('تحرير تخطيط ${_layout.lang.toUpperCase()}'),
+            backgroundColor: Colors.blue.shade700,
+            foregroundColor: Colors.white,
+            actions: [
+              IconButton(
+                onPressed: _importLayout,
+                icon: const Icon(Icons.file_upload),
+                tooltip: 'استيراد',
+              ),
+              IconButton(
+                onPressed: _exportLayout,
+                icon: const Icon(Icons.file_download),
+                tooltip: 'تصدير',
+              ),
+              IconButton(
+                onPressed: _resetToDefault,
+                icon: const Icon(Icons.restore),
+                tooltip: 'العودة للافتراضي',
+              ),
+              IconButton(
+                onPressed: _hasChanges ? _saveLayout : null,
+                icon: const Icon(Icons.save),
+                tooltip: 'حفظ',
+              ),
+            ],
           ),
-        ],
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : layout == null
-              ? const Center(child: Text('خطأ في تحميل التخطيط'))
-              : Column(
-                  children: [
-                    if (hasChanges)
-                      Container(
-                        color: Colors.orange.shade100,
-                        padding: const EdgeInsets.all(8),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.warning, color: Colors.orange),
-                            const SizedBox(width: 8),
-                            const Text('يوجد تغييرات غير محفوظة'),
-                            const Spacer(),
-                            ElevatedButton(
-                              onPressed: _saveLayout,
-                              child: const Text('حفظ'),
-                            ),
-                          ],
-                        ),
+          body: Column(
+            children: [
+              if (_hasChanges)
+                Container(
+                  width: double.infinity,
+                  color: Colors.orange.shade100,
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.orange.shade700),
+                      const SizedBox(width: 8),
+                      Text(
+                        'لديك تغييرات غير محفوظة',
+                        style: TextStyle(color: Colors.orange.shade700),
                       ),
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(8),
-                        itemCount: layout!.getSortedRows().length,
+                      const Spacer(),
+                      TextButton(
+                        onPressed: _saveLayout,
+                        child: const Text('حفظ الآن'),
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: _layout.rows.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'لا توجد صفوف في التخطيط',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _layout.rowKeys.length,
                         itemBuilder: (context, index) {
-                          final rowEntry = layout!.getSortedRows()[index];
-                          final rowKey = rowEntry.key;
-                          final row = rowEntry.value;
-
+                          final rowKey = _layout.rowKeys[index];
+                          final row = _layout.rows[rowKey]!;
+                          
                           return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: Text(
-                                    'الصف: $rowKey',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  subtitle: Text('الارتفاع: ${row.height} | المفاتيح: ${row.keys.length}'),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.add, color: Colors.blue),
-                                        onPressed: () => _addKeyToRow(rowKey),
-                                        tooltip: 'إضافة مفتاح',
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, color: Colors.green),
-                                        onPressed: () => _editRow(rowKey, row),
-                                        tooltip: 'تعديل الصف',
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () => _deleteRow(rowKey),
-                                        tooltip: 'حذف الصف',
-                                      ),
-                                    ],
-                                  ),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.blue.shade700,
+                                child: Text(
+                                  '${index + 1}',
+                                  style: const TextStyle(color: Colors.white),
                                 ),
-                                if (row.keys.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: GridView.builder(
-                                      shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(),
-                                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                        maxCrossAxisExtent: 80,
-                                        childAspectRatio: 1,
-                                        crossAxisSpacing: 4,
-                                        mainAxisSpacing: 4,
-                                      ),
-                                      itemCount: row.keys.length,
-                                      itemBuilder: (context, keyIndex) {
-                                        final key = row.keys[keyIndex];
-                                        return GestureDetector(
-                                          onTap: () => _editKey(rowKey, keyIndex, key),
-                                          onLongPress: () => _deleteKey(rowKey, keyIndex),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: _getKeyColor(key.type),
-                                              border: Border.all(color: Colors.grey),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                key.text.isNotEmpty ? key.text : key.type,
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
+                              ),
+                              title: Text(
+                                rowKey,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('الارتفاع: ${row.height}'),
+                                  Text('عدد الأزرار: ${row.keys.length}'),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    onPressed: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => RowEditorScreen(
+                                            rowKey: rowKey,
+                                            row: row,
                                           ),
-                                        );
-                                      },
+                                        ),
+                                      );
+                                      
+                                      if (result != null) {
+                                        setState(() {
+                                          _layout.rows[rowKey] = result;
+                                          _hasChanges = true;
+                                        });
+                                      }
+                                    },
+                                    icon: const Icon(Icons.edit, color: Colors.blue),
+                                    tooltip: 'تحرير الصف',
+                                  ),
+                                  IconButton(
+                                    onPressed: () => _deleteRow(rowKey),
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    tooltip: 'حذف الصف',
+                                  ),
+                                ],
+                              ),
+                              onTap: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RowEditorScreen(
+                                      rowKey: rowKey,
+                                      row: row,
                                     ),
                                   ),
-                              ],
+                                );
+                                
+                                if (result != null) {
+                                  setState(() {
+                                    _layout.rows[rowKey] = result;
+                                    _hasChanges = true;
+                                  });
+                                }
+                              },
                             ),
                           );
                         },
                       ),
-                    ),
-                  ],
-                ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addNewRow,
-        backgroundColor: Colors.green.shade800,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-    );
-  }
-
-  Color _getKeyColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'space':
-        return Colors.blue.shade100;
-      case 'delete':
-        return Colors.red.shade100;
-      case 'shift':
-      case 'capslock':
-        return Colors.orange.shade100;
-      case 'ctrl':
-      case 'alt':
-        return Colors.purple.shade100;
-      case 'symbols':
-      case 'emoji':
-        return Colors.green.shade100;
-      default:
-        return Colors.grey.shade100;
-    }
-  }
-}
-
-class _RowEditDialog extends StatefulWidget {
-  final KeyboardRow row;
-
-  const _RowEditDialog({required this.row});
-
-  @override
-  State<_RowEditDialog> createState() => _RowEditDialogState();
-}
-
-class _RowEditDialogState extends State<_RowEditDialog> {
-  late TextEditingController _heightController;
-
-  @override
-  void initState() {
-    super.initState();
-    _heightController = TextEditingController(text: widget.row.height.toString());
-  }
-
-  @override
-  void dispose() {
-    _heightController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('تعديل الصف'),
-      content: TextField(
-        controller: _heightController,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          labelText: 'الارتفاع',
-          hintText: 'أدخل ارتفاع الصف',
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: _addNewRow,
+            backgroundColor: Colors.blue.shade700,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('إلغاء'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final height = double.tryParse(_heightController.text) ?? widget.row.height;
-            Navigator.pop(context, widget.row.copyWith(height: height));
-          },
-          child: const Text('حفظ'),
-        ),
-      ],
     );
   }
 }
