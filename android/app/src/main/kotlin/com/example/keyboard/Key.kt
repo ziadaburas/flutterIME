@@ -19,6 +19,8 @@ constructor(
 ) : FrameLayout(context, attrs, defStyle) {
     val screenWidth = context.resources.displayMetrics.widthPixels
     val screenHeight = context.resources.displayMetrics.heightPixels
+    var onLeftScrollFn={}
+    var onRightScrollFn={}
     var hint = ""
         set(value) {
             field = value
@@ -58,6 +60,8 @@ constructor(
     var keyHeight = -1
     var keyWeight = 1f
     open var keyCode = 0
+    var touchStartX = 0f
+    var offset = 0
     open var mtextSize = 18f
         set(value) {
             field = value
@@ -188,21 +192,39 @@ constructor(
         longPressHandler.postDelayed(longPressRunnable, longPressTimeout)
         isHoldKey = true
         setBackgroundColor(Color.CYAN.toInt())
+        
+        touchStartX = e.x 
+        offset = 0
         return true
     }
     open fun actionUp(e: MotionEvent): Boolean {
         isHoldKey = false
         longPressHandler.removeCallbacks(longPressRunnable)
-        if (!isSpecialKey) setBackgroundColor(0xFF2D2D2D.toInt())
-        if (!isActionUp(e.rawX.toInt(), e.rawY.toInt())) return false
         val pressDuration = e.eventTime - e.downTime
+        
+        if (!isSpecialKey) setBackgroundColor(0xFF2D2D2D.toInt())
+        if (offset > (btnWidth / 2) && pressDuration < longPressTimeout) post { 
+            // Key.ctrl.notifyListeners()
+            // Key.alt.notifyListeners()
+            // Key.shift.notifyListeners()
+            // Key.capslock.notifyListeners()
+            onLeftScrollFn()
+            onRightScrollFn()
+            setBackgroundColor(0xFF2D2D2D.toInt())
+            
+        }
+        if (!isActionUp(e.rawX.toInt(), e.rawY.toInt())) return false
         if (pressDuration < longPressTimeout) {
             onClick()
         }
-        return false
+        
+       // setBackgroundColor(0xFF2D2D2D.toInt())
+        
+        return true
     }
     open fun actionMove(e: MotionEvent): Boolean {
-        return false
+        offset = Math.abs(e.x - touchStartX).toInt()
+        return true
     }
     override fun onTouchEvent(e: MotionEvent): Boolean {
         super.onTouchEvent(e)

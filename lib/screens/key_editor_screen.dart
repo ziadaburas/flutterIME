@@ -31,15 +31,25 @@ class _KeyEditorScreenState extends State<KeyEditorScreen> {
   final TextEditingController _textToSendController = TextEditingController();
   final TextEditingController _codeToSendClickController = TextEditingController();
   final TextEditingController _codeToSendLongPressController = TextEditingController();
+  final TextEditingController _textToSendLongPressController = TextEditingController();
+
+  // --- [ بداية الإضافة ] ---
+  final TextEditingController _leftScrollController = TextEditingController();
+  final TextEditingController _rightScrollController = TextEditingController();
+  final TextEditingController _textToSendLeftScrollController = TextEditingController();
+  final TextEditingController _textToSendRightScrollController = TextEditingController();
+  final TextEditingController _codeToSendLeftScrollController = TextEditingController();
+  final TextEditingController _codeToSendRightScrollController = TextEditingController();
+  // --- [ نهاية الإضافة ] ---
 
   // قوائم الخيارات المحددة مسبقًا
   final List<String> _keyTypes = [
-    'All', 'delete', 'space', 'shift', 'capslock', 
+    'All', 'delete', 'space', 'shift', 'capslock',
     'ctrl', 'alt', 'symbols', 'emoji', 'clip'
   ];
   
   final List<String> _actionTypes = [
-    'sendText', 'sendCode', 'showPopup', 'loop', ''
+    'sendText', 'sendCode', 'showPopup', 'loop','sendSpecial','switchLang', ''
   ];
 
   @override
@@ -59,6 +69,16 @@ class _KeyEditorScreenState extends State<KeyEditorScreen> {
     _textToSendController.text = _key.textToSend ?? '';
     _codeToSendClickController.text = _key.codeToSendClick?.toString() ?? '';
     _codeToSendLongPressController.text = _key.codeToSendLongPress?.toString() ?? '';
+    _textToSendLongPressController.text = _key.textToSendLongPress?.toString() ?? '';
+
+    // --- [ بداية الإضافة ] ---
+    _leftScrollController.text = _key.leftScroll ?? '';
+    _rightScrollController.text = _key.rightScroll ?? '';
+    _textToSendLeftScrollController.text = _key.textToSendLeftScroll ?? '';
+    _textToSendRightScrollController.text = _key.textToSendRightScroll ?? '';
+    _codeToSendLeftScrollController.text = _key.codeToSendLeftScroll?.toString() ?? '';
+    _codeToSendRightScrollController.text = _key.codeToSendRightScroll?.toString() ?? '';
+    // --- [ نهاية الإضافة ] ---
   }
 
   void _updateKey() {
@@ -71,12 +91,26 @@ class _KeyEditorScreenState extends State<KeyEditorScreen> {
       _key.click = _clickController.text.isEmpty ? null : _clickController.text;
       _key.longPress = _longPressController.text.isEmpty ? null : _longPressController.text;
       _key.textToSend = _textToSendController.text.isEmpty ? null : _textToSendController.text;
+      _key.textToSendLongPress = _textToSendLongPressController.text.isEmpty ? null : _textToSendLongPressController.text;
       
       final clickCode = int.tryParse(_codeToSendClickController.text);
       _key.codeToSendClick = clickCode == 0 ? null : clickCode;
       
       final longPressCode = int.tryParse(_codeToSendLongPressController.text);
       _key.codeToSendLongPress = longPressCode == 0 ? null : longPressCode;
+      
+      // --- [ بداية الإضافة ] ---
+      _key.leftScroll = _leftScrollController.text.isEmpty ? null : _leftScrollController.text;
+      _key.rightScroll = _rightScrollController.text.isEmpty ? null : _rightScrollController.text;
+      _key.textToSendLeftScroll = _textToSendLeftScrollController.text.isEmpty ? null : _textToSendLeftScrollController.text;
+      _key.textToSendRightScroll = _textToSendRightScrollController.text.isEmpty ? null : _textToSendRightScrollController.text;
+
+      final leftScrollCode = int.tryParse(_codeToSendLeftScrollController.text);
+      _key.codeToSendLeftScroll = leftScrollCode == 0 ? null : leftScrollCode;
+
+      final rightScrollCode = int.tryParse(_codeToSendRightScrollController.text);
+      _key.codeToSendRightScroll = rightScrollCode == 0 ? null : rightScrollCode;
+      // --- [ نهاية الإضافة ] ---
       
       _hasChanges = true;
     });
@@ -112,6 +146,7 @@ class _KeyEditorScreenState extends State<KeyEditorScreen> {
           click: 'sendText',
           longPress: '',
           textToSend: 'أ',
+          // سيتم تعيين المتغيرات الجديدة إلى null افتراضيًا
         );
         _initializeControllers();
         _hasChanges = true;
@@ -304,6 +339,7 @@ class _KeyEditorScreenState extends State<KeyEditorScreen> {
                           _textController,
                           hint: 'النص الذي يظهر على الزر',
                         ),
+                        
                         const SizedBox(height: 16),
                         
                         _buildTextField(
@@ -390,10 +426,78 @@ class _KeyEditorScreenState extends State<KeyEditorScreen> {
                           keyboardType: TextInputType.number,
                           hint: 'رمز المفتاح للضغط المطول (اختياري)',
                         ),
+                        const SizedBox(height: 16),
+                        
+                        _buildTextField(
+                          'رمز الضغط المطول',
+                          _textToSendLongPressController,
+                          keyboardType: TextInputType.text,
+                          hint: 'نص المفتاح للضغط المطول (اختياري)',
+                        ),
+
                       ],
                     ),
                   ),
                 ),
+
+                // --- [ بداية الإضافة ] ---
+                const SizedBox(height: 16),
+
+                // إعدادات التمرير
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'إعدادات التمرير (Scroll)',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        _buildDropdownField('إجراء التمرير لليسار', _leftScrollController, _actionTypes),
+                        const SizedBox(height: 16),
+                        
+                        _buildDropdownField('إجراء التمرير لليمين', _rightScrollController, _actionTypes),
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          'النص المرسل (تمرير يسار)',
+                          _textToSendLeftScrollController,
+                          hint: 'النص عند التمرير لليسار',
+                        ),
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          'النص المرسل (تمرير يمين)',
+                          _textToSendRightScrollController,
+                          hint: 'النص عند التمرير لليمين',
+                        ),
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          'رمز التمرير (يسار)',
+                          _codeToSendLeftScrollController,
+                          keyboardType: TextInputType.number,
+                          hint: 'رمز المفتاح للتمرير يسار (اختياري)',
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        _buildTextField(
+                          'رمز التمرير (يمين)',
+                          _codeToSendRightScrollController,
+                          keyboardType: TextInputType.number,
+                          hint: 'رمز المفتاح للتمرير يمين (اختياري)',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // --- [ نهاية الإضافة ] ---
 
                 const SizedBox(height: 24),
 
@@ -471,6 +575,17 @@ class _KeyEditorScreenState extends State<KeyEditorScreen> {
     _textToSendController.dispose();
     _codeToSendClickController.dispose();
     _codeToSendLongPressController.dispose();
+    _textToSendLongPressController.dispose();
+
+    // --- [ بداية الإضافة ] ---
+    _leftScrollController.dispose();
+    _rightScrollController.dispose();
+    _textToSendLeftScrollController.dispose();
+    _textToSendRightScrollController.dispose();
+    _codeToSendLeftScrollController.dispose();
+    _codeToSendRightScrollController.dispose();
+    // --- [ نهاية الإضافة ] ---
+    
     super.dispose();
   }
 }

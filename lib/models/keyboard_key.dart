@@ -8,6 +8,16 @@ class KeyboardKey {
   String? textToSend;
   int? codeToSendClick;
   int? codeToSendLongPress;
+  String? textToSendLongPress;
+
+  // --- [ بداية الإضافة ] ---
+  String? leftScroll;
+  String? rightScroll;
+  String? textToSendLeftScroll;
+  String? textToSendRightScroll;
+  int? codeToSendLeftScroll;
+  int? codeToSendRightScroll;
+  // --- [ نهاية الإضافة ] ---
 
   KeyboardKey({
     required this.type,
@@ -19,6 +29,15 @@ class KeyboardKey {
     this.textToSend,
     this.codeToSendClick,
     this.codeToSendLongPress,
+    this.textToSendLongPress,
+    // --- [ بداية الإضافة ] ---
+    this.leftScroll,
+    this.rightScroll,
+    this.textToSendLeftScroll,
+    this.textToSendRightScroll,
+    this.codeToSendLeftScroll,
+    this.codeToSendRightScroll,
+    // --- [ نهاية الإضافة ] ---
   });
 
   factory KeyboardKey.fromJson(Map<String, dynamic> json) {
@@ -27,11 +46,21 @@ class KeyboardKey {
       weight: (json['weight'] ?? 1.0).toDouble(),
       text: json['text'] ?? '',
       hint: json['hint'] ?? '',
-      click: json['click'],
-      longPress: json['longPress'],
-      textToSend: json['textToSend'],
-      codeToSendClick: json['codeToSendClick'],
-      codeToSendLongPress: json['codeToSendLongPress'],
+      click: json['click'] ?? '',
+      longPress: json['longPress'] ?? '',
+      textToSend: json['textToSend'] ?? '',
+      textToSendLongPress: json['textToSendLongPress'] ?? '',
+      codeToSendClick: json['codeToSendClick'] ?? 0,
+      codeToSendLongPress: json['codeToSendLongPress'] ?? 0,
+      
+      // --- [ بداية الإضافة ] ---
+      leftScroll: json['leftScroll'] ?? '',
+      rightScroll: json['rightScroll'] ?? '',
+      textToSendLeftScroll: json['textToSendLeftScroll'] ?? '',
+      textToSendRightScroll: json['textToSendRightScroll'] ?? '',
+      codeToSendLeftScroll: json['codeToSendLeftScroll'] ?? 0,
+      codeToSendRightScroll: json['codeToSendRightScroll'] ?? 0,
+      // --- [ نهاية الإضافة ] ---
     );
   }
 
@@ -48,6 +77,16 @@ class KeyboardKey {
     if (textToSend != null) json['textToSend'] = textToSend;
     if (codeToSendClick != null) json['codeToSendClick'] = codeToSendClick;
     if (codeToSendLongPress != null) json['codeToSendLongPress'] = codeToSendLongPress;
+    if (textToSendLongPress != null) json['textToSendLongPress'] = textToSendLongPress;
+
+    // --- [ بداية الإضافة ] ---
+    if (leftScroll != null) json['leftScroll'] = leftScroll;
+    if (rightScroll != null) json['rightScroll'] = rightScroll;
+    if (textToSendLeftScroll != null) json['textToSendLeftScroll'] = textToSendLeftScroll;
+    if (textToSendRightScroll != null) json['textToSendRightScroll'] = textToSendRightScroll;
+    if (codeToSendLeftScroll != null) json['codeToSendLeftScroll'] = codeToSendLeftScroll;
+    if (codeToSendRightScroll != null) json['codeToSendRightScroll'] = codeToSendRightScroll;
+    // --- [ نهاية الإضافة ] ---
     
     return json;
   }
@@ -63,6 +102,16 @@ class KeyboardKey {
       textToSend: textToSend,
       codeToSendClick: codeToSendClick,
       codeToSendLongPress: codeToSendLongPress,
+      textToSendLongPress: textToSendLongPress,
+
+      // --- [ بداية الإضافة ] ---
+      leftScroll: leftScroll,
+      rightScroll: rightScroll,
+      textToSendLeftScroll: textToSendLeftScroll,
+      textToSendRightScroll: textToSendRightScroll,
+      codeToSendLeftScroll: codeToSendLeftScroll,
+      codeToSendRightScroll: codeToSendRightScroll,
+      // --- [ نهاية الإضافة ] ---
     );
   }
 }

@@ -71,7 +71,7 @@ constructor(
         when(value){
             "sendText"->{
                 onLongPressFn= {
-                    FlutterIME.ime.sendKeyPress(textTosendLongPress) 
+                    FlutterIME.ime.sendKeyPress(textToSendLongPress) 
                 }
             }
             "sendCode"->{
@@ -120,7 +120,7 @@ constructor(
         }
     }
     var textToSend = ""
-    var textTosendLongPress = ""
+    var textToSendLongPress = ""
     var codeToSendClick = 0
     var codeToSendLongPress = 0
     val popupBtns = mutableListOf<Button>()

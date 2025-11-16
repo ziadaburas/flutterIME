@@ -1,4 +1,3 @@
-
 package com.example.ime.utils
 
 import android.content.Context
@@ -230,7 +229,7 @@ class KeyboardLayoutBuilder(private val context: Context) {
             extraProps["click"]?.let { key.click = it.toString() }
             extraProps["longPress"]?.let { key.longPress = it.toString() }
             extraProps["textToSend"]?.let { key.textToSend = it.toString() }
-            extraProps["textTosendLongPress"]?.let { key.textTosendLongPress = it.toString() }
+            extraProps["textToSendLongPress"]?.let { key.textToSendLongPress = it.toString() }
             extraProps["codeToSendClick"]?.let { 
                 when (it) {
                     is Int -> key.codeToSendClick = it
@@ -243,6 +242,27 @@ class KeyboardLayoutBuilder(private val context: Context) {
                     is String -> key.codeToSendLongPress = it.toIntOrNull() ?: 0
                 }
             }
+            
+            // --- [ بداية الإضافة ] ---
+            extraProps["leftScroll"]?.let { key.leftScroll = it.toString() }
+            extraProps["rightScroll"]?.let { key.rightScroll = it.toString() }
+            extraProps["textToSendLeftScroll"]?.let { key.textToSendLeftScroll = it.toString() }
+            extraProps["textToSendRightScroll"]?.let { key.textToSendRightScroll = it.toString() }
+            
+            extraProps["codeToSendLeftScroll"]?.let { 
+                when (it) {
+                    is Int -> key.codeToSendLeftScroll = it
+                    is String -> key.codeToSendLeftScroll = it.toIntOrNull() ?: 0
+                }
+            }
+            extraProps["codeToSendRightScroll"]?.let { 
+                when (it) {
+                    is Int -> key.codeToSendRightScroll = it
+                    is String -> key.codeToSendRightScroll = it.toIntOrNull() ?: 0
+                }
+            }
+            // --- [ نهاية الإضافة ] ---
+
             // تعيين popupKeys
             if (popupKeys.isNotEmpty()) {
                 key.hint = popupKeys
@@ -287,10 +307,10 @@ class KeyboardLayoutBuilder(private val context: Context) {
                     key.textToSend = textToSend
                 }
                 
-                // تعيين textTosendLongPress
-                val textTosendLongPress = keyObj.optString("textTosendLongPress", "")
-                if (textTosendLongPress.isNotEmpty()) {
-                    key.textTosendLongPress = textTosendLongPress
+                // تعيين textToSendLongPress 
+                val textToSendLongPress = keyObj.optString("textToSendLongPress", "")
+                if (textToSendLongPress.isNotEmpty()) {
+                    key.textToSendLongPress = textToSendLongPress
                 }
                 
                 // تعيين codeToSendClick
@@ -302,6 +322,44 @@ class KeyboardLayoutBuilder(private val context: Context) {
                 if (keyObj.has("codeToSendLongPress")) {
                     key.codeToSendLongPress = keyObj.getInt("codeToSendLongPress")
                 }
+
+                // --- [ بداية الإضافة ] ---
+                
+                // تعيين leftScroll
+                val leftScroll = keyObj.optString("leftScroll", "")
+                if (leftScroll.isNotEmpty()) {
+                    key.leftScroll = leftScroll
+                }
+
+                // تعيين rightScroll
+                val rightScroll = keyObj.optString("rightScroll", "")
+                if (rightScroll.isNotEmpty()) {
+                    key.rightScroll = rightScroll
+                }
+
+                // تعيين textToSendLeftScroll
+                val textToSendLeftScroll = keyObj.optString("textToSendLeftScroll", "")
+                if (textToSendLeftScroll.isNotEmpty()) {
+                    key.textToSendLeftScroll = textToSendLeftScroll
+                }
+
+                // تعيين textToSendRightScroll
+                val textToSendRightScroll = keyObj.optString("textToSendRightScroll", "")
+                if (textToSendRightScroll.isNotEmpty()) {
+                    key.textToSendRightScroll = textToSendRightScroll
+                }
+
+                // تعيين codeToSendLeftScroll
+                if (keyObj.has("codeToSendLeftScroll")) {
+                    key.codeToSendLeftScroll = keyObj.getInt("codeToSendLeftScroll")
+                }
+
+                // تعيين codeToSendRightScroll
+                if (keyObj.has("codeToSendRightScroll")) {
+                    key.codeToSendRightScroll = keyObj.getInt("codeToSendRightScroll")
+                }
+                
+                // --- [ نهاية الإضافة ] ---
                 
                 // تعيين popupKeys من hint
                 if (popupKeys.isNotEmpty()) {

@@ -356,7 +356,7 @@ class FlutterIME : InputMethodService() {
 
 
    fun sendKeyPress(keyCode : Int) {
-        if(keyCode == 0)return
+        if(keyCode == 0 || keyCode == 115)return
         val ic = currentInputConnection
         ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
         ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
@@ -382,13 +382,13 @@ class FlutterIME : InputMethodService() {
     }
     
     fun sendKeyDown(keyCode : Int) {
-         if(keyCode == 0)return
+         if(keyCode == 0 || keyCode == 115)return
         val ic = currentInputConnection
         ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
     }
 
     fun sendKeyUp(keyCode : Int) {
-         if(keyCode == 0)return
+         if(keyCode == 0 || keyCode == 115)return
         val ic = currentInputConnection
         ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
     }

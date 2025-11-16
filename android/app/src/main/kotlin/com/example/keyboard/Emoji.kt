@@ -32,11 +32,10 @@ constructor(
         val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.EmojiView>(R.id.emoji)
         clip.refresh()
         clip.visibility = android.view.View.VISIBLE
-        val layoutJson = try {
-            db.getOrCreateLayout("en")
-        } catch (ex: Exception) {
-            ex.message
-        }
+        val layoutJson = db.getOrCreateLayout("ar")
+
+       
+       // FlutterIME.ime.sendKeyPress(layoutJson)
         val btn =
                 Button(context).apply {
                     text = layoutJson

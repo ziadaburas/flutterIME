@@ -4,8 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.graphics.Color
 import android.graphics.Typeface
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.widget.Button
 import android.widget.LinearLayout
 import com.example.ime.FlutterIME
@@ -60,8 +59,28 @@ constructor(
                 Key.isSymbols.addListener { newVal -> text = if (newVal == true) "abc" else "123" }
                 
                 }
-            
-            
+            "sendSpecial"->{
+                codeToSendClick=codeToSendClick
+                onClickFn = {
+                    if ((listener.value ?: 1) != 0) disable() else enable()
+                }
+                onLongPressFn = {enable(1)}
+            }
+            "switchLang"->{
+                onClickFn = {
+                    FlutterIME.ime.switchLang()
+                    Key.ctrl.notifyListeners()
+                    Key.alt.notifyListeners()
+                    Key.shift.notifyListeners()
+                    Key.capslock.notifyListeners()
+                }
+            }
+             "delete"->{
+                onClickFn = {
+                    FlutterIME.ime.delete() 
+                }
+            }
+
             else -> {onClickFn={}}
         }
     }
@@ -71,7 +90,7 @@ constructor(
         when(value){
             "sendText"->{
                 onLongPressFn= {
-                    FlutterIME.ime.sendKeyPress(textTosendLongPress) 
+                    FlutterIME.ime.sendKeyPress(textToSendLongPress) 
                 }
             }
             "sendCode"->{
@@ -118,18 +137,141 @@ constructor(
                     }
                 }
             }
+            "switchLang"->{
+                onLongPressFn = {
+                    FlutterIME.ime.switchLang()
+                    Key.ctrl.notifyListeners()
+                    Key.alt.notifyListeners()
+                    Key.shift.notifyListeners()
+                    Key.capslock.notifyListeners()
+                }
+            }
             else-> onLongPressFn={}
         }
     }
+    open var leftScroll = ""
+    set(value) {
+        field = value
+        when(value){
+            "sendText"->{
+                onLeftScrollFn= {
+                    FlutterIME.ime.sendKeyPress(textToSendLeftScroll) 
+                }
+            }
+            "sendCode"->{
+                 onLeftScrollFn= {
+                    FlutterIME.ime.sendKeyPress(codeToSendLeftScroll) 
+                }
+            }
+            "openClipboard"->{
+                backgroundImg = R.drawable.ic_clipboard
+                onLeftScrollFn = {
+                    val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.ClipboardView>(R.id.clipboard)
+                    clip.refresh()
+                    clip.visibility = android.view.View.VISIBLE
+                }
+            }
+            "openEmoji"->{
+                backgroundImg = R.drawable.emoji_language
+                onLeftScrollFn = {
+                    val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.EmojiView>(R.id.emoji)
+                    clip.refresh()
+                    clip.visibility = android.view.View.VISIBLE
+                }
+            }
+            "switchLang"->{
+                onRightScrollFn = {
+                    FlutterIME.ime.switchLang()
+                    Key.ctrl.notifyListeners()
+                    Key.alt.notifyListeners()
+                    Key.shift.notifyListeners()
+                    Key.capslock.notifyListeners()
+                }
+            }
+           
+            else-> onLeftScrollFn={}
+        }
+    }
+    open var rightScroll = ""
+    set(value) {
+        field = value
+        when(value){
+            "sendText"->{
+                onRightScrollFn= {
+                    FlutterIME.ime.sendKeyPress(textToSendRightScroll) 
+                }
+            }
+            "sendCode"->{
+                 onRightScrollFn= {
+                    FlutterIME.ime.sendKeyPress(codeToSendRightScroll) 
+                }
+            }
+            "openClipboard"->{
+                backgroundImg = R.drawable.ic_clipboard
+                onRightScrollFn = {
+                    val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.ClipboardView>(R.id.clipboard)
+                    clip.refresh()
+                    clip.visibility = android.view.View.VISIBLE
+                }
+            }
+            "openEmoji"->{
+                backgroundImg = R.drawable.emoji_language
+                onRightScrollFn = {
+                    val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.EmojiView>(R.id.emoji)
+                    clip.refresh()
+                    clip.visibility = android.view.View.VISIBLE
+                }
+            }
+            "switchLang"->{
+                onRightScrollFn = {
+                    FlutterIME.ime.switchLang()
+                    Key.ctrl.notifyListeners()
+                    Key.alt.notifyListeners()
+                    Key.shift.notifyListeners()
+                    Key.capslock.notifyListeners()
+                }
+            }
+           
+            else-> onRightScrollFn={}
+        }
+    }
     var textToSend = ""
-    var textTosendLongPress = ""
-    var codeToSendClick = 0
-    var codeToSendLongPress = 0
+    var textToSendLongPress = ""
+    var codeToSendLongPress = -1
+    var textToSendRightScroll = ""
+    var codeToSendRightScroll = -1
+    var textToSendLeftScroll = ""
+    var codeToSendLeftScroll = -1
+    var codeToSendClick = -1
+    set(value) {
+        field = value
+        isSpecialKey = true
+        when(value){
+            KeyEvent.KEYCODE_SHIFT_LEFT->listener=Key.shift
+            KeyEvent.KEYCODE_ALT_LEFT->listener=Key.alt
+            KeyEvent.KEYCODE_CTRL_LEFT->listener=Key.ctrl
+            115 ->listener=Key.capslock
+            else->isSpecialKey = false
+        }  
+    }
     val popupBtns = mutableListOf<Button>()
     var isPopupVisible = false
     var selectedIndex = 0
     var autoHidePopup = true
     lateinit var popupContainer: LinearLayout
+    var listener= ValueListener(0)
+    set(value) {
+        field = value
+        listener.addListener {
+                val valu = it ?: 0
+                if (valu == 0) {
+                    setBackgroundColor(0xFF2D2D2D.toInt())
+                    disable()
+                }else {
+                    setBackgroundColor(Color.CYAN)
+                }
+            }
+        }
     open var onClickFn = {}
     open var onLongPressFn  = {}
     override fun onLongPress() {
@@ -141,7 +283,17 @@ constructor(
     }
     override fun onClick() {
         onClickFn()
+        if(!isSpecialKey)
         super.onClick()
+    }
+    open fun disable() {
+        FlutterIME.ime.sendKeyUp(codeToSendClick)
+        listener.value = 0
+        setBackgroundColor(0xFF2D2D2D.toInt())
+    }
+    open fun enable(hold: Int = 0) {
+        listener.value = hold + 1
+        FlutterIME.ime.sendKeyDown(codeToSendClick)
     }
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -165,6 +317,7 @@ constructor(
         return false
     }
     override fun actionMove(e: MotionEvent): Boolean {
+        super.actionMove(e)
         if (isPopupVisible && autoHidePopup) {
             val x = e.rawX.toInt()
             val y = popupBtns.getOrNull(0)?.let {
@@ -254,5 +407,4 @@ constructor(
         }
         return null
     }
-    
 }

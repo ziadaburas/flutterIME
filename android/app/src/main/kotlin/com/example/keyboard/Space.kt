@@ -17,8 +17,8 @@ constructor(
 ) : Normal(context, attrs, defStyle) {
     override var keyCode = KeyEvent.KEYCODE_SPACE
     override var clickFn = {sendKeyCode()}
-    var touchStartX = 0f
-    var offset = 0
+    // var touchStartX = 0f
+    // var offset = 0
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 3f)
@@ -36,13 +36,13 @@ constructor(
     }
     override fun actionDown(e: MotionEvent): Boolean {
         super.actionDown(e)
-        touchStartX = e.x
-        offset = 0
+        // touchStartX = e.x 
+        // offset = 0
         return true
     }
     override fun actionMove(e: MotionEvent): Boolean {
         super.actionMove(e)
-        offset = Math.abs(e.x - touchStartX).toInt()
+        // offset = Math.abs(e.x - touchStartX).toInt()
         return true
     }
     override fun actionUp(e: MotionEvent): Boolean {
