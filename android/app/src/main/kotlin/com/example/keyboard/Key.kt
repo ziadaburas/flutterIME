@@ -41,12 +41,14 @@ constructor(
         invalidate()
     }
     private var _backgroundImg:Drawable? = null
+
     val longPressTimeout = 200L
     var isHoldKey = false
     var isHoldPressed = false
     val longPressHandler = Handler(Looper.getMainLooper())
     var isLongPressed = false
     var isSpecialKey = false
+    var isConstKey = false
     var longPressRunnable = Runnable { onLongPress() }
     var bgColor: Int = 0xFF2D2D2D.toInt()
     
@@ -101,7 +103,6 @@ constructor(
     }
     init {
         initAttributes(attrs)
-        
         inset = dpToPx(2f)
         
         // background = null
@@ -147,35 +148,20 @@ constructor(
             style = Paint.Style.FILL
         }
         canvas.drawRect(inset, inset, width.toFloat() - inset, height.toFloat() - inset, rectPaint)
-        if (backgroundImg != 0 && _backgroundImg == null) {
-            text = ""
-            _backgroundImg = context.getDrawable(backgroundImg)
-            _backgroundImg?.let{
-                val imgcx =  it.intrinsicWidth/2
-                val imgcy = it.intrinsicHeight/2
-                it.setBounds(cx-imgcx, cy-imgcy,cx+imgcx, cy+imgcy) // left, top, right, bottom
-                
-            }
-            // _backgroundImg?.setBounds(0, 0, _backgroundImg!!.intrinsicWidth, _backgroundImg!!.intrinsicHeight)
-        }
-            _backgroundImg?.let {
-            // تحديد موقع وأبعاد الصورة داخل الـ View
-            it.draw(canvas)
         
+        _backgroundImg?.let {
+            val imgcx =  it.intrinsicWidth/2
+            val imgcy = it.intrinsicHeight/2
+            it.setBounds(cx-imgcx, cy-imgcy,cx+imgcx, cy+imgcy) 
+            it.draw(canvas)
+            return@onDraw
         }
         canvas.drawText(text.toString(), centerX, centerY, textPaint)
         val fm = topRightPaint.fontMetrics
         val y = inset - fm.ascent
         val topTextX = width.toFloat() - 2 * inset
-        canvas.drawText(
-            hint.split(" ").take(2).joinToString(""),
-            topTextX,
-            y,
-            topRightPaint
-        ) 
+        canvas.drawText(hint.split(" ").take(2).joinToString(""),topTextX,y,topRightPaint) 
 
-        
-        super.onDraw(canvas)
     }
   
     override fun setBackgroundColor(color: Int) {

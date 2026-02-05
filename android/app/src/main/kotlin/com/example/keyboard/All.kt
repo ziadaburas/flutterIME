@@ -36,6 +36,7 @@ constructor(
                 }
             }
             "openClipboard"->{
+                backgroundImg = R.drawable.ic_clipboard
                 onClickFn = {
                     val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.ClipboardView>(R.id.clipboard)
                     clip.refresh()
@@ -43,6 +44,7 @@ constructor(
                 }
             }
             "openEmoji"->{
+                backgroundImg = R.drawable.emoji_language
                 onClickFn = {
                     val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.EmojiView>(R.id.emoji)
                     clip.refresh()
@@ -99,7 +101,7 @@ constructor(
                 }
             }
             "openClipboard"->{
-                backgroundImg = R.drawable.ic_clipboard
+                
                 onLongPressFn = {
                     val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.ClipboardView>(R.id.clipboard)
                     clip.refresh()
@@ -107,7 +109,7 @@ constructor(
                 }
             }
             "openEmoji"->{
-                backgroundImg = R.drawable.emoji_language
+                
                 onLongPressFn = {
                     val clip = FlutterIME.ime.rootView.findViewById<com.example.ime.views.EmojiView>(R.id.emoji)
                     clip.refresh()
@@ -252,7 +254,9 @@ constructor(
             KeyEvent.KEYCODE_CTRL_LEFT->listener=Key.ctrl
             115 ->listener=Key.capslock
             else->isSpecialKey = false
-        }  
+        }
+        if(value > 0)
+        isConstKey = true 
     }
     val popupBtns = mutableListOf<Button>()
     var isPopupVisible = false
@@ -338,11 +342,13 @@ constructor(
        val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
         layoutParams = params
         Key.capslock.addListener { 
-            var value = it ?: 0
-            if (value != 0) {
-                text = text.uppercase()
-            } else {
-                text = text.lowercase()
+            if(!isConstKey){
+                var value = it ?: 0
+                if (value != 0) {
+                    text = text.uppercase()
+                } else {
+                    text = text.lowercase()
+                }
             }
         }
     }

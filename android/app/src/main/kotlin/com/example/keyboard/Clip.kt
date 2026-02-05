@@ -18,11 +18,12 @@ constructor(
     attrs: AttributeSet? = null,
     defStyle: Int = android.R.attr.buttonStyle
 ) : Key(context, attrs, defStyle) {
-    override var backgroundImg = R.drawable.ic_clipboard
+    // override var backgroundImg = R.drawable.ic_clipboard
 
     init {
         
         text = "" 
+        backgroundImg = R.drawable.ic_clipboard
         
     }
     

@@ -22,9 +22,10 @@ constructor(
 ) : Key(context, attrs, defStyle) {
     private val db = KeyboardLayoutDB(context)
 
-    override var backgroundImg = R.drawable.emoji_language
+    // override var backgroundImg = R.drawable.emoji_language
     init {
         text = ""
+        backgroundImg = R.drawable.emoji_language
     }
    
     override fun onClick() {
@@ -35,8 +36,7 @@ constructor(
         val layoutJson = db.getOrCreateLayout("ar")
 
        
-       // FlutterIME.ime.sendKeyPress(layoutJson)
-        val btn =
+.        val btn =
                 Button(context).apply {
                     text = layoutJson
                 }

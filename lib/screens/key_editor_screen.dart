@@ -49,7 +49,7 @@ class _KeyEditorScreenState extends State<KeyEditorScreen> {
   ];
   
   final List<String> _actionTypes = [
-    'sendText', 'sendCode', 'showPopup', 'loop','sendSpecial','switchLang', ''
+    'sendText', 'sendCode', 'showPopup', 'loop','sendSpecial','switchLang', 'delete','openClipboard','openEmoji',''
   ];
 
   @override
